@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="dk.easv.belman.Gui.Controller.WorkerDashboardController">
+    <top>
+        <ToolBar>
+            <Label text="Belsign System - Worker"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="currentUserLabel"/>
+            <Button text="Logout" onAction="#handleLogout"/>
+        </ToolBar>
+    </top>
+    <center>
+        <VBox spacing="10" alignment="CENTER">
+            <TextField fx:id="orderNumberField" promptText="Enter Order Number"/>
+            <Button text="Upload Image" onAction="#handleUploadImage"/>
+            <ListView fx:id="imageListView" prefHeight="200"/>
+            <Button text="Submit for Approval" onAction="#handleSubmitImages"/>
+        </VBox>
+    </center>
+</BorderPane>
+
+
+
+

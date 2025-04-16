@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="dk.easv.belman.Gui.Controller.QaDashboardController">
+    <top>
+        <ToolBar>
+            <Label text="Belsign System - QA"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="currentUserLabel"/>
+            <Button text="Logout" onAction="#handleLogout"/>
+        </ToolBar>
+    </top>
+    <center>
+        <VBox spacing="10" alignment="CENTER">
+            <ListView fx:id="pendingOrdersList" prefHeight="200"/>
+            <HBox spacing="10">
+                <Button text="View Images" onAction="#handleViewImages"/>
+                <Button text="Preview Report" onAction="#handlePreviewReport"/>
+            </HBox>
+            <HBox spacing="10">
+                <Button text="Approve" onAction="#handleApprove"/>
+                <Button text="Reject" onAction="#handleReject"/>
+                <Button text="Send Report via Email" onAction="#handleSendEmail"/>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>
+
+
+
+
+

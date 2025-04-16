@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="dk.easv.belman.Gui.Controller.AdminDashboardController">
+    <top>
+        <ToolBar>
+            <Label text="Belsign System - Admin"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="currentUserLabel"/>
+            <Button text="Logout" onAction="#handleLogout"/>
+        </ToolBar>
+    </top>
+    <center>
+        <VBox spacing="10" alignment="CENTER">
+            <Label text="Create New User"/>
+            <TextField fx:id="newUserField" promptText="Username"/>
+            <PasswordField fx:id="newPasswordField" promptText="Password"/>
+            <ComboBox fx:id="roleComboBox" promptText="Select Role"/>
+            <Button text="Add User" onAction="#handleAddUser"/>
+
+            <Separator/>
+            <Label text="Existing Users"/>
+            <TableView fx:id="userTableView" prefHeight="200">
+                <columns>
+                    <TableColumn fx:id="usernameColumn" text="Username"/>
+                    <TableColumn fx:id="roleColumn" text="Role"/>
+                </columns>
+            </TableView>
+            <Button text="Delete Selected User" onAction="#handleDeleteUser"/>
+        </VBox>
+    </center>
+</BorderPane>
+
+
+
+
+
+

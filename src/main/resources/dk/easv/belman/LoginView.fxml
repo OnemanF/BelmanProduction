@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="dk.easv.belman.Gui.Controller.LoginController">
+    <VBox spacing="20" alignment="CENTER" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0">
+        <ImageView fitHeight="100.0" fitWidth="100.0" preserveRatio="true">
+            <image>
+                <Image url="@/dk/easv/belman/Icon/BelmanT.png" />
+            </image>
+        </ImageView>
+
+        <VBox spacing="15" alignment="CENTER">
+            <TextField fx:id="usernameField" promptText="Username" />
+            <PasswordField fx:id="passwordField" promptText="Password" />
+            <Button text="Login" onAction="#handleLogin"/>
+            <Label fx:id="errorLabel" textFill="red"/>
+        </VBox>
+    </VBox>
+</AnchorPane>
