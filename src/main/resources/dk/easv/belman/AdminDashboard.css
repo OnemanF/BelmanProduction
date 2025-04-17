@@ -1,0 +1,38 @@
+.button {
+    -fx-background-color: #001965;
+    -fx-text-fill: White;
+}
+
+.combo-box {
+    -fx-background-color: #001965;
+}
+
+
+.combo-box .list-cell {
+    -fx-text-fill: white;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: transparent;
+}
+
+.table-view .column-header {
+    -fx-background-color: #001965
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+
+
+#CreateNewUser {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+#ExistingUsers {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}

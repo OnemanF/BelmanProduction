@@ -15,4 +15,7 @@ public class ReportPreviewController {
 
     public void handleBack(ActionEvent actionEvent) {
     }
+
+    public void handleSendEmail(ActionEvent actionEvent) {
+    }
 }

@@ -6,13 +6,13 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="dk.easv.belman.Gui.Controller.ReportPreviewController">
+<AnchorPane stylesheets="/dk/easv/belman/ReportPreview.css" xmlns:fx="http://javafx.com/fxml" fx:controller="dk.easv.belman.Gui.Controller.ReportPreviewController">
     <VBox spacing="10" alignment="CENTER" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
           AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0">
         <Label text="QC Report Preview"/>
-        <ListView fx:id="reportImagesList" prefHeight="200"/>
-        <TextArea fx:id="reportTextArea" promptText="Notes or observations..." prefHeight="100"/>
+        <ListView fx:id="reportImagesList" prefHeight="600"/>
         <Button text="Back" onAction="#handleBack"/>
+        <Button text="Send Report via Email" onAction="#handleSendEmail"/>
     </VBox>
 </AnchorPane>
 

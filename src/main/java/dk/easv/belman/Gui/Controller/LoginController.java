@@ -20,6 +20,7 @@ public class LoginController {
     @FXML private TextField txtUsername;
     @FXML private PasswordField txtPassword;
 
+
     private final UserModel userModel = UserModel.getInstance();
 
     public void handleLogin(ActionEvent actionEvent) {
@@ -68,7 +69,7 @@ public class LoginController {
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setFullScreen(true);
-            stage.setFullScreenExitHint(""); // Optional: hide exit hint
+            stage.setFullScreenExitHint("");
             stage.show();
 
             ((Stage) ((Node) event.getSource()).getScene().getWindow()).close();

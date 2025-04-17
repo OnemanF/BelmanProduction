@@ -3,29 +3,42 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="dk.easv.belman.Gui.Controller.QaDashboardController">
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<BorderPane stylesheets="/dk/easv/belman/QaDashboard.css" xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx/23.0.1"
+            fx:controller="dk.easv.belman.Gui.Controller.QaDashboardController">
+
     <top>
         <ToolBar>
+            <ImageView fitHeight="64" fitWidth="64" preserveRatio="true">
+                <image>
+                    <Image url="@/dk/easv/belman/Icon/BelmanT.png"/>
+                </image>
+            </ImageView>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="currentUserLabel"/>
             <Button text="Logout" onAction="#handleLogout"/>
         </ToolBar>
     </top>
+
     <center>
-        <VBox spacing="10" alignment="CENTER">
-            <ListView fx:id="pendingOrdersList" prefHeight="200"/>
-            <HBox spacing="10">
-                <Button text="View Images" onAction="#handleViewImages"/>
-                <Button text="Preview Report" onAction="#handlePreviewReport"/>
-            </HBox>
-            <HBox spacing="10">
-                <Button text="Approve" onAction="#handleApprove"/>
-                <Button text="Reject" onAction="#handleReject"/>
-                <Button text="Send Report via Email" onAction="#handleSendEmail"/>
-            </HBox>
-        </VBox>
+        <HBox spacing="30" alignment="CENTER" BorderPane.alignment="CENTER" style="-fx-padding: 20;">
+            <ListView fx:id="pendingOrdersList" prefHeight="400" prefWidth="500"/>
+
+            <VBox spacing="15" alignment="CENTER" maxWidth="250" fillWidth="true">
+                <Button text="View Images" onAction="#handleViewImages" maxWidth="Infinity" prefHeight="60"/>
+                <Button text="Preview Report" onAction="#handlePreviewReport" maxWidth="Infinity" prefHeight="60"/>
+                <Button text="Approve" onAction="#handleApprove" maxWidth="Infinity" prefHeight="60"/>
+                <Button text="Reject" onAction="#handleReject" maxWidth="Infinity" prefHeight="60"/>
+
+            </VBox>
+        </HBox>
     </center>
 </BorderPane>
+
+
+
+
 
 
 
