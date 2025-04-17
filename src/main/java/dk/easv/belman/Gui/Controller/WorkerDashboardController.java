@@ -16,5 +16,6 @@ public class WorkerDashboardController {
     }
 
     public void handleSubmitImages(ActionEvent actionEvent) {
+
     }
 }

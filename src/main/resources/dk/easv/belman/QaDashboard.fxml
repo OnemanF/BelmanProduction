@@ -6,7 +6,6 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="dk.easv.belman.Gui.Controller.QaDashboardController">
     <top>
         <ToolBar>
-            <Label text="Belsign System - QA"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="currentUserLabel"/>
             <Button text="Logout" onAction="#handleLogout"/>

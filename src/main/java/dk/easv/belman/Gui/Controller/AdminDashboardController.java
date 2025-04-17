@@ -16,6 +16,7 @@ public class AdminDashboardController {
     }
 
     public void handleSendEmail(ActionEvent actionEvent) {
+
     }
 
     public void handleAddUser(ActionEvent actionEvent) {
