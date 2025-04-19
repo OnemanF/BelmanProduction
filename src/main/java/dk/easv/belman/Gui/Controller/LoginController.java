@@ -51,8 +51,8 @@ public class LoginController {
     private void switchToDashboard(String role, ActionEvent event) {
         String fxmlFile = switch (role.toLowerCase()) {
             case "admin" -> "AdminDashboard.fxml";
-            case "qa" -> "QaDashboard.fxml";
-            case "worker" -> "WorkerDashboard.fxml";
+            case "quality assurance" -> "QaDashboard.fxml";
+            case "production worker" -> "WorkerDashboard.fxml";
             default -> null;
         };
 

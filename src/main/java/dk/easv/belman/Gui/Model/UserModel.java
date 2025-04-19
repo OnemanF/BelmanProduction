@@ -6,6 +6,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class UserModel {
     private static final UserModel instance = new UserModel();
@@ -29,6 +30,30 @@ public class UserModel {
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+    
+    public void addUser (User user) throws SQLException {
+        User addedUser = userBLL.addUser(user);
+        users.add(addedUser);
+    }
+
+    public boolean userExists(String username) throws SQLException {
+        return userBLL.userExists(username);
+    }
+
+    public void deleteUser(User user) throws SQLException {
+        userBLL.deleteUser(user);
+        users.remove(user);
+    }
+
+    //updates the UI
+    public void loadUsersFromDatabase() {
+        try {
+            List<User> allUsers = userBLL.getAllUsers();
+            users.setAll(allUsers);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

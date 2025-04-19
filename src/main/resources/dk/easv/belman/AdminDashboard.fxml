@@ -27,7 +27,7 @@
             </ImageView>
             <Region HBox.hgrow="ALWAYS" />
             <Label fx:id="currentUserLabel" />
-            <Button onAction="#handleLogout" text="Logout" />
+            <Button fx:id="btnLogout" onAction="#handleLogout" text="Logout" />
         </ToolBar>
     </top>
 
@@ -35,7 +35,7 @@
         <VBox alignment="CENTER" maxWidth="712.0" prefHeight="626.0" prefWidth="712.0" spacing="20" BorderPane.alignment="CENTER">
 
             <Label fx:id="CreateNewUser" text="Create New User" />
-            <TextField fx:id="newUserField" maxWidth="300" promptText="Username" />
+            <TextField fx:id="UsernameTxt" maxWidth="300" promptText="Username" />
             <PasswordField fx:id="newPasswordField" maxWidth="300" promptText="Password" />
             <ComboBox fx:id="roleComboBox" maxWidth="300" promptText="Select Role" />
             <Button maxWidth="200" onAction="#handleAddUser" text="Add User" />
