@@ -1,10 +1,10 @@
 .button {
-    -fx-background-color: #001965;
+    -fx-background-color: #004b88;
     -fx-text-fill: White;
 }
 
 .combo-box {
-    -fx-background-color: #001965;
+    -fx-background-color: #004b88;
     -fx-border-color: transparent;
 }
 
@@ -13,28 +13,28 @@
 }
 
 .combo-box .list-cell {
-    -fx-background-color: #001965;
+    -fx-background-color: #004b88;
     -fx-text-fill: white;
     -fx-border-color: transparent;
 }
 
 .combo-box .list-cell:hover {
-    -fx-background-color: #0033cc;
+    -fx-background-color: #004b88;
 }
 
 .combo-box-popup .list-view {
-    -fx-background-color: #001965;
+    -fx-background-color: #004b88;
     -fx-border-color: transparent;
 }
 
 .combo-box-popup .list-cell {
-    -fx-background-color: #001965;
+    -fx-background-color: #004b88;
     -fx-text-fill: white;
     -fx-border-color: transparent;
 }
 
 .combo-box-popup .list-cell:hover {
-    -fx-background-color: #0033cc;
+    -fx-background-color: #004b88;
 }
 
 .table-view .column-header-background {
@@ -42,7 +42,7 @@
 }
 
 .table-view .column-header {
-    -fx-background-color: #001965
+    -fx-background-color: #004b88
 }
 
 .table-view .column-header .label {

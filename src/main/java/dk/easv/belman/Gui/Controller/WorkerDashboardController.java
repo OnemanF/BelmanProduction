@@ -1,15 +1,40 @@
 package dk.easv.belman.Gui.Controller;
 
+import dk.easv.belman.BE.UploadEntry;
+import dk.easv.belman.BE.User;
+import dk.easv.belman.Gui.Model.UploadModel;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class WorkerDashboardController {
+
+    @FXML private TextField orderNumberField;
+    @FXML private ListView<String> imageListView;
+    @FXML private Label currentUserLabel;
+
+    private final UploadModel uploadModel = UploadModel.getInstance();
+    private User currentUser;
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        currentUserLabel.setText("Logged in as: " + user.getUsername());
+    }
+
+
     public void handleLogout(ActionEvent actionEvent) {
         LoadSceneLogin("LoginView.fxml", actionEvent);
     }
@@ -31,16 +56,47 @@ public class WorkerDashboardController {
         }
     }
 
-    public void handleAddImage(ActionEvent actionEvent) {
-    }
-
-    public void handleSubmit(ActionEvent actionEvent) {
-    }
-
     public void handleUploadImage(ActionEvent actionEvent) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Image");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+
+        File selectedFile = fileChooser.showOpenDialog(((Node) actionEvent.getSource()).getScene().getWindow());
+        if (selectedFile != null) {
+            String path = selectedFile.getAbsolutePath();
+            uploadModel.addImagePath(path);
+            imageListView.getItems().add(path);
+        }
     }
 
     public void handleSubmitImages(ActionEvent actionEvent) {
+        String orderNumber = orderNumberField.getText();
+        if (orderNumber == null || orderNumber.isBlank()) {
+            showAlert("Please enter an order number.");
+            return;
+        }
 
+        if (uploadModel.getImagePaths().isEmpty()) {
+            showAlert("Please upload at least one image.");
+            return;
+        }
+
+        List<UploadEntry> submitted = uploadModel.submitImages(orderNumber, currentUser.getUsername());
+        System.out.println("Submitted: " + submitted.size());
+
+        imageListView.getItems().clear();
+        orderNumberField.clear();
+        showAlert("Images submitted successfully!");
     }
+
+    private void showAlert(String msg) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Info");
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
+    }
+
 }

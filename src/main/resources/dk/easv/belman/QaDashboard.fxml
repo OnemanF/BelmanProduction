@@ -1,46 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.image.Image?>
-<BorderPane stylesheets="/dk/easv/belman/QaDashboard.css" xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx/23.0.1"
-            fx:controller="dk.easv.belman.Gui.Controller.QaDashboardController">
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane stylesheets="/dk/easv/belman/QaDashboard.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dk.easv.belman.Gui.Controller.QaDashboardController">
 
     <top>
         <ToolBar>
             <ImageView fitHeight="64" fitWidth="64" preserveRatio="true">
                 <image>
-                    <Image url="@/dk/easv/belman/Icon/BelmanT.png"/>
+                    <Image url="@/dk/easv/belman/Icon/BelmanT.png" />
                 </image>
             </ImageView>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Label fx:id="currentUserLabel"/>
-            <Button text="Logout" onAction="#handleLogout"/>
+            <Region HBox.hgrow="ALWAYS" />
+            <HBox alignment="CENTER_RIGHT" spacing="60">
+                <Label fx:id="currentUserLabel" style="-fx-font-weight: bold;" text="Logged in as: " />
+                <Button onAction="#handleLogout" text="Logout" />
+            </HBox>
         </ToolBar>
     </top>
 
     <center>
-        <HBox spacing="30" alignment="CENTER" BorderPane.alignment="CENTER" style="-fx-padding: 20;">
-            <ListView fx:id="pendingOrdersList" prefHeight="400" prefWidth="500"/>
+        <VBox alignment="CENTER" spacing="30" style="-fx-padding: 20;">
+            <HBox alignment="CENTER" spacing="60">
 
-            <VBox spacing="15" alignment="CENTER" maxWidth="250" fillWidth="true">
-                <Button text="View Images" onAction="#handleViewImages" maxWidth="Infinity" prefHeight="60"/>
-                <Button text="Preview Report" onAction="#handlePreviewReport" maxWidth="Infinity" prefHeight="60"/>
-                <Button text="Approve" onAction="#handleApprove" maxWidth="Infinity" prefHeight="60"/>
-                <Button text="Reject" onAction="#handleReject" maxWidth="Infinity" prefHeight="60"/>
+                <VBox alignment="TOP_CENTER" spacing="15">
+                    <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Pending Orders" />
+                    <ListView fx:id="pendingOrdersList" prefHeight="400" prefWidth="500" />
+                    <HBox spacing="10">
+                        <Button onAction="#handleViewImages" prefWidth="150" text="View Images" />
+                        <Button onAction="#handlePreviewReport" prefWidth="150" text="Preview Report" />
+                    </HBox>
+                    <HBox spacing="10">
+                        <Button onAction="#handleApprove" prefWidth="150" text="Approve" />
+                        <Button onAction="#handleReject" prefWidth="150" text="Reject" />
+                        <Button onAction="#handleSendEmail" prefWidth="150" text="Send Email" />
+                    </HBox>
+                </VBox>
 
-            </VBox>
-        </HBox>
+                <VBox alignment="TOP_CENTER" spacing="15">
+                    <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="All Orders" />
+                    <TableView fx:id="orderTable" prefHeight="400" prefWidth="600">
+                        <columns>
+                            <TableColumn fx:id="orderNumberCol" prefWidth="236.0" text="Order #" />
+                            <TableColumn fx:id="customerCol" minWidth="0.0" prefWidth="215.20001220703125" text="Customer" />
+                            <TableColumn fx:id="statusCol" prefWidth="149.5999755859375" text="Status" />
+                        </columns>
+                    </TableView>
+
+                    <HBox spacing="10">
+                        <TextField fx:id="orderNumberField" prefWidth="200" promptText="Order Number" />
+                        <TextField fx:id="customerField" prefWidth="200" promptText="Customer Name" />
+                        <Button onAction="#handleAddOrder" prefWidth="150" text="Add Order" />
+                    </HBox>
+                </VBox>
+
+            </HBox>
+        </VBox>
     </center>
+
 </BorderPane>
-
-
-
-
-
-
-
-
-

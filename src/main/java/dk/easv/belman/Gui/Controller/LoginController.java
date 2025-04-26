@@ -37,7 +37,7 @@ public class LoginController {
         loginTask.setOnSucceeded(event -> {
             User user = loginTask.getValue();
             if (user != null) {
-                Platform.runLater(() -> switchToDashboard(user.getRole(), actionEvent));
+                Platform.runLater(() -> switchToDashboard(user, actionEvent));
             } else {
                 showError("Invalid credentials. Try again.");
             }
@@ -48,8 +48,8 @@ public class LoginController {
         new Thread(loginTask).start();
     }
 
-    private void switchToDashboard(String role, ActionEvent event) {
-        String fxmlFile = switch (role.toLowerCase()) {
+    private void switchToDashboard(User user, ActionEvent event) {
+        String fxmlFile = switch (user.getRole().toLowerCase()) {
             case "admin" -> "AdminDashboard.fxml";
             case "quality assurance" -> "QaDashboard.fxml";
             case "production worker" -> "WorkerDashboard.fxml";
@@ -57,15 +57,25 @@ public class LoginController {
         };
 
         if (fxmlFile == null) {
-            showError("Unknown role.");
+            showError("Unknown role: " + user.getRole());
             return;
         }
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/dk/easv/belman/" + fxmlFile));
             Parent root = loader.load();
-            Scene scene = new Scene(root);
 
+            //Pass user to the loaded controller
+            Object controller = loader.getController();
+            if (controller instanceof QaDashboardController qaCtrl) {
+                qaCtrl.setCurrentUser(user);
+            } else if (controller instanceof AdminDashboardController adminCtrl) {
+                adminCtrl.setCurrentUser(user);
+            } else if (controller instanceof WorkerDashboardController workerCtrl) {
+                workerCtrl.setCurrentUser(user);
+            }
+
+            Scene scene = new Scene(root);
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setFullScreen(true);
@@ -76,7 +86,7 @@ public class LoginController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            showError("Could not load dashboard.");
+            showError("Could not load dashboard: " + e.getMessage());
         }
     }
 

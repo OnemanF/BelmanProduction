@@ -26,6 +26,9 @@ public class AdminDashboardController {
     @FXML private TableColumn<User, String> usernameColumn;
     @FXML private TableColumn<User, String> roleColumn;
 
+    @FXML private Label currentUserLabel;
+    private User currentUser;
+
     private final UserModel usermodel = UserModel.getInstance();
 
     @FXML
@@ -124,10 +127,8 @@ public class AdminDashboardController {
         }
     }
 
-
-    public void handleGeneratePdf(ActionEvent actionEvent) {
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        currentUserLabel.setText("Logged in as: " + user.getUsername());
     }
-
-
-
 }

@@ -26,8 +26,10 @@
                 </image>
             </ImageView>
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="currentUserLabel" />
-            <Button fx:id="btnLogout" onAction="#handleLogout" text="Logout" />
+            <HBox spacing="60" alignment="CENTER_RIGHT">
+                <Label fx:id="currentUserLabel" text="Logged in as: " style="-fx-font-weight: bold;" />
+                <Button text="Logout" onAction="#handleLogout"/>
+            </HBox>
         </ToolBar>
     </top>
 

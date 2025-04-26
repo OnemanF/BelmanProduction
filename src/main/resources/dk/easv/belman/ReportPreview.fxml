@@ -1,19 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane stylesheets="/dk/easv/belman/ReportPreview.css" xmlns:fx="http://javafx.com/fxml" fx:controller="dk.easv.belman.Gui.Controller.ReportPreviewController">
-    <VBox spacing="10" alignment="CENTER" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-          AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0">
-        <Label text="QC Report Preview"/>
-        <ListView fx:id="reportImagesList" prefHeight="600"/>
-        <Button text="Back" onAction="#handleBack"/>
-        <Button text="Send Report via Email" onAction="#handleSendEmail"/>
+<AnchorPane stylesheets="/dk/easv/belman/ReportPreview.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dk.easv.belman.Gui.Controller.ReportPreviewController">
+    <VBox alignment="TOP_CENTER" spacing="20" style="-fx-padding: 30;" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        <Label style="-fx-font-size: 24px;" text="QC Report Preview" />
+
+        <GridPane hgap="20" vgap="10">
+            <Label text="Order Number:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <Label fx:id="orderNumberLabel" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+            <Label text="Submitted By:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <Label fx:id="submittedByLabel" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+            <Label text="Date:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+            <Label fx:id="submissionDateLabel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        </GridPane>
+
+        <Label style="-fx-font-size: 16px;" text="Attached Images:" />
+        <ListView fx:id="reportImagesList" maxWidth="600" prefHeight="400" />
+
+        <HBox alignment="CENTER" spacing="20">
+            <Button onAction="#handleBack" prefWidth="150" text="Back" />
+            <Button onAction="#handleSendEmail" prefWidth="200" text="Send Report via Email" />
+        </HBox>
     </VBox>
 </AnchorPane>
-
-

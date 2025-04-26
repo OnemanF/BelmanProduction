@@ -1,4 +1,17 @@
 .button {
-    -fx-background-color: #001965;
+    -fx-background-color: #004b88;
     -fx-text-fill: White;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: transparent;
+}
+
+.table-view .column-header {
+    -fx-background-color: #004b88
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
 }
