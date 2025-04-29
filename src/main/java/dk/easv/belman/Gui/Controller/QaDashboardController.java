@@ -9,21 +9,28 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class QaDashboardController {
 
     @FXML private Label currentUserLabel;
-    @FXML private ListView<UploadEntry> pendingOrdersList;
+    @FXML private ListView<String> pendingOrdersList;
     @FXML private TableView<Order> orderTable;
     @FXML private TableColumn<Order, String> orderNumberCol;
     @FXML private TableColumn<Order, String> customerCol;
@@ -38,10 +45,19 @@ public class QaDashboardController {
     @FXML
     private void initialize() {
         uploadModel.loadPendingUploads();
-        pendingOrdersList.setItems(uploadModel.getPendingUploads());
+        loadPendingOrderNumbers();
 
         setupOrderTable();
         loadOrders();
+    }
+
+    private void loadPendingOrderNumbers() {
+        List<String> uniqueOrderNumbers = uploadModel.getPendingUploads().stream()
+                .map(UploadEntry::getOrderNumber)
+                .distinct()
+                .collect(Collectors.toList());
+
+        pendingOrdersList.setItems(FXCollections.observableArrayList(uniqueOrderNumbers));
     }
 
     private void setupOrderTable() {
@@ -77,6 +93,57 @@ public class QaDashboardController {
     }
 
     public void handleViewImages(ActionEvent actionEvent) {
+        String selectedOrderNumber = pendingOrdersList.getSelectionModel().getSelectedItem();
+        if (selectedOrderNumber == null || selectedOrderNumber.isBlank()) {
+            showAlert("Please select an order number to view images.");
+            return;
+        }
+
+        List<UploadEntry> imagesForOrder = uploadModel.getPendingUploads().stream()
+                .filter(upload -> selectedOrderNumber.equals(upload.getOrderNumber()))
+                .collect(Collectors.toList());
+
+        if (imagesForOrder.isEmpty()) {
+            showAlert("No images found for this order.");
+            return;
+        }
+
+        VBox imagesBox = new VBox(20);
+        imagesBox.setAlignment(Pos.CENTER);
+        imagesBox.setPadding(new Insets(20));
+
+        for (UploadEntry upload : imagesForOrder) {
+            try {
+                ImageView imageView = new ImageView(new Image(new File(upload.getImagePath()).toURI().toString()));
+                imageView.setPreserveRatio(true);
+                imageView.setFitWidth(600);
+                addZoomCapability(imageView);
+                imagesBox.getChildren().add(imageView);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        ScrollPane scrollPane = new ScrollPane(imagesBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPannable(true);
+
+        Scene scene = new Scene(scrollPane, 800, 600);
+
+        Stage stage = new Stage();
+        stage.setTitle("Images for Order: " + selectedOrderNumber);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    private void addZoomCapability(ImageView imageview) {
+        imageview.setOnScroll(event -> {
+            if (event.getDeltaY() == 0) return;
+
+            double zoomFactor = event.getDeltaY() > 0 ? 1.1 : 0.9;
+            imageview.setFitWidth(imageview.getFitWidth() * zoomFactor);
+            event.consume();
+        });
     }
 
     public void setCurrentUser(User user) {
@@ -85,25 +152,36 @@ public class QaDashboardController {
     }
     @FXML
     private void handleApprove(ActionEvent event) {
-        UploadEntry selected = pendingOrdersList.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showAlert("Please select a Order Number to approve.");
+        String selectedOrderNumber = pendingOrdersList.getSelectionModel().getSelectedItem();
+        if (selectedOrderNumber == null || selectedOrderNumber.isBlank()) {
+            showAlert("Please select an order number to approve.");
             return;
         }
 
         try {
             String approver = currentUser.getUsername();
-            uploadModel.updateApprovalStatus(selected.getId(), "approved", approver);
 
-            showAlert("Order approved by: " + approver);
+            List<UploadEntry> entriesToApprove = uploadModel.getPendingUploads().stream()
+                    .filter(upload -> selectedOrderNumber.equals(upload.getOrderNumber()))
+                    .collect(Collectors.toList());
 
-            // Refresh list
+            if (entriesToApprove.isEmpty()) {
+                showAlert("No uploads found for selected order.");
+                return;
+            }
+
+            for (UploadEntry entry : entriesToApprove) {
+                uploadModel.updateApprovalStatus(entry.getId(), "approved", approver);
+            }
+
+            showAlert("Approved all uploads for order: " + selectedOrderNumber);
+
             uploadModel.loadPendingUploads();
-            pendingOrdersList.setItems(uploadModel.getPendingUploads());
+            loadPendingOrderNumbers();
 
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert("Error approving order: " + e.getMessage());
+            showAlert("Error approving uploads: " + e.getMessage());
         }
     }
 
@@ -116,9 +194,66 @@ public class QaDashboardController {
     }
 
     public void handleReject(ActionEvent actionEvent) {
+        String selectedOrderNumber = pendingOrdersList.getSelectionModel().getSelectedItem();
+        if (selectedOrderNumber == null || selectedOrderNumber.isBlank()) {
+            showAlert("Please select an order number to reject.");
+            return;
+        }
+
+        try {
+            String approver = currentUser.getUsername();
+
+            List<UploadEntry> entriesToReject = uploadModel.getPendingUploads().stream()
+                    .filter(upload -> selectedOrderNumber.equals(upload.getOrderNumber()))
+                    .collect(Collectors.toList());
+
+            if (entriesToReject.isEmpty()) {
+                showAlert("No uploads found for selected order.");
+                return;
+            }
+
+            for (UploadEntry entry : entriesToReject) {
+                uploadModel.updateApprovalStatus(entry.getId(), "rejected", approver);
+            }
+
+            showAlert("Rejected all uploads for order: " + selectedOrderNumber);
+
+            uploadModel.loadPendingUploads();
+            loadPendingOrderNumbers();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Error rejecting uploads: " + e.getMessage());
+        }
     }
 
     public void handlePreviewReport(ActionEvent actionEvent) {
+        String selectedOrderNumber = pendingOrdersList.getSelectionModel().getSelectedItem();
+        if (selectedOrderNumber == null || selectedOrderNumber.isBlank()) {
+            showAlert("Please select an order number to preview the report.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/dk/easv/belman/ReportPreview.fxml"));
+            Parent root = loader.load();
+
+            // Get the controller and pass data
+            ReportPreviewController controller = loader.getController();
+            controller.setOrderNumber(selectedOrderNumber);
+            controller.loadReportData(selectedOrderNumber);
+
+            Stage stage = new Stage();
+            stage.setTitle("Report Preview - Order: " + selectedOrderNumber);
+            stage.setScene(new Scene(root));
+            stage.setFullScreen(true);
+            stage.setMaximized(true);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error loading report preview: " + e.getMessage());
+        }
+
     }
 
     public void handleSendEmail(ActionEvent actionEvent) {
