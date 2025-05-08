@@ -19,4 +19,8 @@ public class UploadBLL {
     public void saveUpload(UploadEntry entry) throws SQLException {
         uploadDAL.insertUpload(entry);
     }
+
+    public List<UploadEntry> getAllUploads() throws SQLException {
+        return uploadDAL.getAllUploads();
+    }
 }

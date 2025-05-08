@@ -10,9 +10,14 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.TextArea?>
 <AnchorPane stylesheets="/dk/easv/belman/ReportPreview.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dk.easv.belman.Gui.Controller.ReportPreviewController">
-    <VBox alignment="TOP_CENTER" spacing="20" style="-fx-padding: 30;" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-        <Label style="-fx-font-size: 24px;" text="QC Report Preview" />
+    <VBox alignment="TOP_CENTER" spacing="20"
+          AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+          style="-fx-padding: 30;">
+
+        <Label text="QC Report Preview" style="-fx-font-size: 24px;" />
 
         <GridPane hgap="20" vgap="10">
             <Label text="Order Number:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
@@ -25,12 +30,29 @@
             <Label fx:id="submissionDateLabel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
         </GridPane>
 
-        <Label style="-fx-font-size: 16px;" text="Attached Images:" />
-        <ListView fx:id="reportImagesList" maxWidth="600" prefHeight="400" />
+        <Label text="Attached Images:" style="-fx-font-size: 16px;" />
+        <ListView fx:id="reportImagesList"
+                  maxWidth="600"
+                  prefHeight="300" />
+
+        <Label text="Notes:" style="-fx-font-size: 16px;" />
+        <TextArea fx:id="notesTextArea"
+                  promptText="Write any QA notes or comments here..."
+                  wrapText="true"
+                  maxWidth="600"
+                  prefHeight="150" />
 
         <HBox alignment="CENTER" spacing="20">
-            <Button onAction="#handleBack" prefWidth="150" text="Back" />
-            <Button onAction="#handleSendEmail" prefWidth="200" text="Send Report via Email" />
+            <Button fx:id="backButton"
+                    onAction="#handleBack"
+                    text="Back"
+                    prefWidth="150" />
+
+            <Button fx:id="sendReportButton"
+                    onAction="#handlePdf"
+                    text="Create PDF"
+                    prefWidth="200" />
         </HBox>
+
     </VBox>
 </AnchorPane>

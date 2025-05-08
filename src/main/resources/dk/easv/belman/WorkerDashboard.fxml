@@ -13,6 +13,9 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+<?import javafx.scene.control.ComboBox?>
 <BorderPane xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx/23.0.1"
             fx:controller="dk.easv.belman.Gui.Controller.WorkerDashboardController"
             stylesheets="/dk/easv/belman/WorkerDashboard.css">
@@ -33,14 +36,30 @@
     </top>
 
     <center>
-        <VBox alignment="CENTER" spacing="20" style="-fx-padding: 40;" maxWidth="800" BorderPane.alignment="CENTER">
+        <VBox alignment="CENTER" spacing="20" style="-fx-padding: 40;" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
 
-            <VBox spacing="15" alignment="CENTER">
-                <TextField fx:id="orderNumberField" maxWidth="400" promptText="Enter Order Number"/>
+            <VBox spacing="15" alignment="CENTER" maxWidth="600">
+                <TextField fx:id="orderNumberField" promptText="Enter Order Number" maxWidth="Infinity"/>
+                <ComboBox fx:id="imageTypeComboBox" promptText="Select Image Type" maxWidth="Infinity">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="Front view"/>
+                            <String fx:value="Back view"/>
+                            <String fx:value="Top view"/>
+                            <String fx:value="Close-up"/>
+                            <String fx:value="Broken part"/>
+                            <String fx:value="Scratched surface"/>
+                            <String fx:value="Packaging damaged"/>
+                            <String fx:value="Missing component"/>
+                            <String fx:value="Wrong item received"/>
+                            <String fx:value="Label or serial number photo"/>
+                            <String fx:value="Fully assembled"/>
+                        </FXCollections>
+                    </items>
+                </ComboBox>
                 <Button text="Upload Image" onAction="#handleUploadImage" maxWidth="200"/>
             </VBox>
-
-            <ListView fx:id="imageListView" maxWidth="500" prefHeight="400" />
+            <ListView fx:id="imageListView" VBox.vgrow="ALWAYS" maxWidth="Infinity"/>
 
             <Button text="Submit for Approval" onAction="#handleSubmitImages" maxWidth="200" minHeight="40"/>
         </VBox>

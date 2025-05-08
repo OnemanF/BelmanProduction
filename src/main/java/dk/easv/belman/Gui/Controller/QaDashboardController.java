@@ -1,11 +1,11 @@
 package dk.easv.belman.Gui.Controller;
 
-import dk.easv.belman.BE.Order;
 import dk.easv.belman.BE.UploadEntry;
 import dk.easv.belman.BE.User;
-import dk.easv.belman.Gui.Model.OrderModel;
 import dk.easv.belman.Gui.Model.UploadModel;
-import javafx.collections.FXCollections;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -15,11 +15,14 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.collections.ObservableList;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,45 +33,87 @@ import java.util.stream.Collectors;
 public class QaDashboardController {
 
     @FXML private Label currentUserLabel;
-    @FXML private ListView<String> pendingOrdersList;
-    @FXML private TableView<Order> orderTable;
-    @FXML private TableColumn<Order, String> orderNumberCol;
-    @FXML private TableColumn<Order, String> customerCol;
-    @FXML private TableColumn<Order, String> statusCol;
-    @FXML private TextField orderNumberField;
-    @FXML private TextField customerField;
+    @FXML private ListView<HBox> pendingOrdersList;
+    @FXML private TableView<UploadEntry> uploadTable;
+    @FXML private TableColumn<UploadEntry, String> orderNumberCol;
+    @FXML private TableColumn<UploadEntry, String> uploadedByCol;
+    @FXML private TableColumn<UploadEntry, String> statusCol;
+    @FXML private TextField pendingSearchField;
+    @FXML private TextField allOrdersSearchField;
+
+    private FilteredList<UploadEntry> filteredReviewedUploads;
 
     private User currentUser;
     private final UploadModel uploadModel = UploadModel.getInstance();
-    private final OrderModel orderModel = new OrderModel();
+
 
     @FXML
     private void initialize() {
         uploadModel.loadPendingUploads();
-        loadPendingOrderNumbers();
+        uploadModel.loadAllUploads();
 
-        setupOrderTable();
+        setupUploadTable();
+        loadPendingOrderNumbers();
         loadOrders();
     }
 
     private void loadPendingOrderNumbers() {
-        List<String> uniqueOrderNumbers = uploadModel.getPendingUploads().stream()
+        List<String> allOrders = uploadModel.getPendingUploads().stream()
                 .map(UploadEntry::getOrderNumber)
                 .distinct()
                 .collect(Collectors.toList());
 
-        pendingOrdersList.setItems(FXCollections.observableArrayList(uniqueOrderNumbers));
+        pendingSearchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            List<String> filtered = allOrders.stream()
+                    .filter(order -> order.toLowerCase().contains(newVal.toLowerCase()))
+                    .collect(Collectors.toList());
+
+            updatePendingOrderList(filtered);
+        });
+
+        updatePendingOrderList(allOrders);
     }
 
-    private void setupOrderTable() {
-        orderNumberCol.setCellValueFactory(new PropertyValueFactory<>("orderNumber"));
-        customerCol.setCellValueFactory(new PropertyValueFactory<>("customerName"));
-        statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
+    private void updatePendingOrderList(List<String> orderNumbers) {
+        ObservableList<HBox> boxes = uploadModel.getPendingOrderBoxes(
+                this::handleViewImages,
+                this::handlePreviewReport,
+                this::handleApprove,
+                this::handleReject,
+                this::handleSendEmail
+        ).filtered(box -> {
+            Label label = (Label) box.getChildren().get(0);
+            return orderNumbers.contains(label.getText());
+        });
+
+        pendingOrdersList.setItems(boxes);
+    }
+
+    private void setupUploadTable() {
+        orderNumberCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("orderNumber"));
+        uploadedByCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("uploadedBy"));
+        statusCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("status"));
     }
 
     private void loadOrders() {
-        orderModel.loadOrders();
-        orderTable.setItems(orderModel.getOrders());
+        filteredReviewedUploads = new FilteredList<>(
+                uploadModel.getAllUploads(),
+                upload -> "approved".equalsIgnoreCase(upload.getStatus()) || "rejected".equalsIgnoreCase(upload.getStatus())
+        );
+
+        allOrdersSearchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            String filter = newVal.toLowerCase();
+            filteredReviewedUploads.setPredicate(upload ->
+                    ("approved".equalsIgnoreCase(upload.getStatus()) || "rejected".equalsIgnoreCase(upload.getStatus())) &&
+                            (upload.getOrderNumber().toLowerCase().contains(filter) ||
+                                    upload.getUploadedBy().toLowerCase().contains(filter) ||
+                                    upload.getStatus().toLowerCase().contains(filter))
+            );
+        });
+
+        SortedList<UploadEntry> sorted = new SortedList<>(filteredReviewedUploads);
+        sorted.comparatorProperty().bind(uploadTable.comparatorProperty());
+        uploadTable.setItems(sorted);
     }
 
     public void handleLogout(ActionEvent actionEvent) {
@@ -81,9 +126,7 @@ public class QaDashboardController {
             Parent root = loader.load();
 
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root);
-
-            stage.setScene(scene);
+            stage.setScene(new Scene(root));
             stage.setFullScreen(true);
             stage.setMaximized(true);
             stage.show();
@@ -92,15 +135,9 @@ public class QaDashboardController {
         }
     }
 
-    public void handleViewImages(ActionEvent actionEvent) {
-        String selectedOrderNumber = pendingOrdersList.getSelectionModel().getSelectedItem();
-        if (selectedOrderNumber == null || selectedOrderNumber.isBlank()) {
-            showAlert("Please select an order number to view images.");
-            return;
-        }
-
+    private void handleViewImages(String orderNumber) {
         List<UploadEntry> imagesForOrder = uploadModel.getPendingUploads().stream()
-                .filter(upload -> selectedOrderNumber.equals(upload.getOrderNumber()))
+                .filter(upload -> orderNumber.equals(upload.getOrderNumber()))
                 .collect(Collectors.toList());
 
         if (imagesForOrder.isEmpty()) {
@@ -124,22 +161,131 @@ public class QaDashboardController {
             }
         }
 
-        ScrollPane scrollPane = new ScrollPane(imagesBox);
+        Button closeButton = new Button("Close");
+        closeButton.setOnAction(e -> ((Stage) closeButton.getScene().getWindow()).close());
+
+        VBox root = new VBox(10, closeButton, imagesBox);
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setPadding(new Insets(10));
+
+        ScrollPane scrollPane = new ScrollPane(root);
         scrollPane.setFitToWidth(true);
         scrollPane.setPannable(true);
 
-        Scene scene = new Scene(scrollPane, 800, 600);
-
         Stage stage = new Stage();
-        stage.setTitle("Images for Order: " + selectedOrderNumber);
-        stage.setScene(scene);
+        stage.setTitle("Images for Order: " + orderNumber);
+        stage.setScene(new Scene(scrollPane, 800, 600));
+        stage.setFullScreen(true);
+        stage.setFullScreenExitHint("");
         stage.show();
+
+        stage.setOnHidden(e -> {
+            Stage mainStage = (Stage) pendingOrdersList.getScene().getWindow();
+            mainStage.setFullScreen(true);
+        });
+    }
+
+    private void handlePreviewReport(String orderNumber) {
+        ProgressIndicator spinner = new ProgressIndicator();
+        spinner.setPrefSize(80, 80);
+
+        Stage loadingStage = new Stage();
+        VBox loadingRoot = new VBox(spinner);
+        loadingRoot.setAlignment(Pos.CENTER);
+        loadingStage.setScene(new Scene(loadingRoot, 200, 200));
+        loadingStage.initModality(Modality.APPLICATION_MODAL);
+        loadingStage.setTitle("Loading Report...");
+        loadingStage.show();
+
+        Task<Void> loadTask = new Task<>() {
+            private Parent root;
+            private ReportPreviewController controller;
+
+            @Override
+            protected Void call() throws Exception {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/dk/easv/belman/ReportPreview.fxml"));
+                root = loader.load();
+                controller = loader.getController();
+                controller.setOrderNumber(orderNumber);
+                controller.loadReportData(orderNumber);
+                return null;
+            }
+
+            @Override
+            protected void succeeded() {
+                loadingStage.close();
+                Stage previewStage = new Stage();
+                previewStage.setTitle("Report Preview - " + orderNumber);
+                previewStage.setScene(new Scene(root));
+                previewStage.initModality(Modality.APPLICATION_MODAL);
+                previewStage.setFullScreen(true);
+                previewStage.setFullScreenExitHint("");
+                previewStage.showAndWait();
+            }
+
+            @Override
+            protected void failed() {
+                loadingStage.close();
+                getException().printStackTrace();
+                showAlert("Failed to load report: " + getException().getMessage());
+            }
+        };
+
+        new Thread(loadTask).start();
+    }
+
+    private void handleApprove(String orderNumber) {
+        try {
+            List<UploadEntry> entriesToApprove = uploadModel.getPendingUploads().stream()
+                    .filter(upload -> orderNumber.equals(upload.getOrderNumber()))
+                    .collect(Collectors.toList());
+
+            for (UploadEntry entry : entriesToApprove) {
+                uploadModel.updateApprovalStatus(entry.getId(), "approved", currentUser.getUsername());
+            }
+
+            showAlert("Approved all Images for order: " + orderNumber);
+
+            uploadModel.loadPendingUploads();
+            uploadModel.loadAllUploads();
+            loadOrders();
+            loadPendingOrderNumbers();
+
+        } catch (SQLException e) {
+            showAlert("Error approving uploads: " + e.getMessage());
+        }
+    }
+
+    private void handleReject(String orderNumber) {
+        try {
+            List<UploadEntry> entriesToReject = uploadModel.getPendingUploads().stream()
+                    .filter(upload -> orderNumber.equals(upload.getOrderNumber()))
+                    .collect(Collectors.toList());
+
+            for (UploadEntry entry : entriesToReject) {
+                uploadModel.updateApprovalStatus(entry.getId(), "rejected", currentUser.getUsername());
+            }
+
+            showAlert("Rejected all Images for order: " + orderNumber);
+
+            uploadModel.loadPendingUploads();
+            uploadModel.loadAllUploads();
+            loadOrders();
+            loadPendingOrderNumbers();
+
+        } catch (SQLException e) {
+            showAlert("Error rejecting uploads: " + e.getMessage());
+        }
+    }
+
+    private void handleSendEmail(String orderNumber) {
+        // TODO: implement
+        showAlert("Sending email for order: " + orderNumber);
     }
 
     private void addZoomCapability(ImageView imageview) {
-        imageview.setOnScroll(event -> {
+        imageview.setOnScroll((ScrollEvent event) -> {
             if (event.getDeltaY() == 0) return;
-
             double zoomFactor = event.getDeltaY() > 0 ? 1.1 : 0.9;
             imageview.setFitWidth(imageview.getFitWidth() * zoomFactor);
             event.consume();
@@ -150,133 +296,14 @@ public class QaDashboardController {
         this.currentUser = user;
         currentUserLabel.setText("Logged in as: " + user.getUsername());
     }
-    @FXML
-    private void handleApprove(ActionEvent event) {
-        String selectedOrderNumber = pendingOrdersList.getSelectionModel().getSelectedItem();
-        if (selectedOrderNumber == null || selectedOrderNumber.isBlank()) {
-            showAlert("Please select an order number to approve.");
-            return;
-        }
-
-        try {
-            String approver = currentUser.getUsername();
-
-            List<UploadEntry> entriesToApprove = uploadModel.getPendingUploads().stream()
-                    .filter(upload -> selectedOrderNumber.equals(upload.getOrderNumber()))
-                    .collect(Collectors.toList());
-
-            if (entriesToApprove.isEmpty()) {
-                showAlert("No uploads found for selected order.");
-                return;
-            }
-
-            for (UploadEntry entry : entriesToApprove) {
-                uploadModel.updateApprovalStatus(entry.getId(), "approved", approver);
-            }
-
-            showAlert("Approved all uploads for order: " + selectedOrderNumber);
-
-            uploadModel.loadPendingUploads();
-            loadPendingOrderNumbers();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Error approving uploads: " + e.getMessage());
-        }
-    }
 
     private void showAlert(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Information");
         alert.setHeaderText(null);
         alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    public void handleReject(ActionEvent actionEvent) {
-        String selectedOrderNumber = pendingOrdersList.getSelectionModel().getSelectedItem();
-        if (selectedOrderNumber == null || selectedOrderNumber.isBlank()) {
-            showAlert("Please select an order number to reject.");
-            return;
-        }
-
-        try {
-            String approver = currentUser.getUsername();
-
-            List<UploadEntry> entriesToReject = uploadModel.getPendingUploads().stream()
-                    .filter(upload -> selectedOrderNumber.equals(upload.getOrderNumber()))
-                    .collect(Collectors.toList());
-
-            if (entriesToReject.isEmpty()) {
-                showAlert("No uploads found for selected order.");
-                return;
-            }
-
-            for (UploadEntry entry : entriesToReject) {
-                uploadModel.updateApprovalStatus(entry.getId(), "rejected", approver);
-            }
-
-            showAlert("Rejected all uploads for order: " + selectedOrderNumber);
-
-            uploadModel.loadPendingUploads();
-            loadPendingOrderNumbers();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Error rejecting uploads: " + e.getMessage());
-        }
-    }
-
-    public void handlePreviewReport(ActionEvent actionEvent) {
-        String selectedOrderNumber = pendingOrdersList.getSelectionModel().getSelectedItem();
-        if (selectedOrderNumber == null || selectedOrderNumber.isBlank()) {
-            showAlert("Please select an order number to preview the report.");
-            return;
-        }
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/dk/easv/belman/ReportPreview.fxml"));
-            Parent root = loader.load();
-
-            // Get the controller and pass data
-            ReportPreviewController controller = loader.getController();
-            controller.setOrderNumber(selectedOrderNumber);
-            controller.loadReportData(selectedOrderNumber);
-
-            Stage stage = new Stage();
-            stage.setTitle("Report Preview - Order: " + selectedOrderNumber);
-            stage.setScene(new Scene(root));
-            stage.setFullScreen(true);
-            stage.setMaximized(true);
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error loading report preview: " + e.getMessage());
-        }
-
-    }
-
-    public void handleSendEmail(ActionEvent actionEvent) {
-    }
-
-    @FXML
-    public void handleAddOrder(ActionEvent event) {
-        String orderNumber = orderNumberField.getText();
-        String customerName = customerField.getText();
-
-        if (orderNumber == null || orderNumber.isBlank()) {
-            showAlert("Order Number is required.");
-            return;
-        }
-
-        try {
-            Order entry = new Order(0, orderNumber, customerName, null, "open");
-            orderModel.addOrder(entry);
-            orderNumberField.clear();
-            customerField.clear();
-            loadOrders();
-        } catch (SQLException e) {
-            showAlert("Error adding order: " + e.getMessage());
-        }
+        alert.initOwner(currentUserLabel.getScene().getWindow());
+        alert.initModality(Modality.WINDOW_MODAL);
+        alert.show();
     }
 }

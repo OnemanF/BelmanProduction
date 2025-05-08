@@ -9,10 +9,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -23,8 +22,9 @@ import java.util.List;
 public class WorkerDashboardController {
 
     @FXML private TextField orderNumberField;
-    @FXML private ListView<String> imageListView;
+    @FXML private ListView<ImageView> imageListView;
     @FXML private Label currentUserLabel;
+    @FXML private ComboBox<String> imageTypeComboBox;
 
     private final UploadModel uploadModel = UploadModel.getInstance();
     private User currentUser;
@@ -57,6 +57,12 @@ public class WorkerDashboardController {
     }
 
     public void handleUploadImage(ActionEvent actionEvent) {
+        String selectedType = imageTypeComboBox.getValue();
+        if (selectedType == null || selectedType.isBlank()) {
+            showAlert("Please select an image type before uploading.");
+            return;
+        }
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Image");
         fileChooser.getExtensionFilters().addAll(
@@ -65,9 +71,14 @@ public class WorkerDashboardController {
 
         File selectedFile = fileChooser.showOpenDialog(((Node) actionEvent.getSource()).getScene().getWindow());
         if (selectedFile != null) {
-            String path = selectedFile.getAbsolutePath();
-            uploadModel.addImagePath(path);
-            imageListView.getItems().add(path);
+            Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
+            ImageView imageView = new ImageView(image);
+            imageView.setPreserveRatio(true);
+            imageView.setFitWidth(200);
+
+            imageListView.getItems().add(imageView);
+
+            uploadModel.addImagePath(selectedFile.getAbsolutePath());
         }
     }
 
@@ -88,6 +99,7 @@ public class WorkerDashboardController {
 
         imageListView.getItems().clear();
         orderNumberField.clear();
+        uploadModel.loadPendingUploads();
         showAlert("Images submitted successfully!");
     }
 
@@ -96,7 +108,11 @@ public class WorkerDashboardController {
         alert.setTitle("Info");
         alert.setHeaderText(null);
         alert.setContentText(msg);
-        alert.showAndWait();
+
+        Stage stage = (Stage) orderNumberField.getScene().getWindow();
+        alert.initOwner(stage);
+
+        alert.show();
     }
 
 }

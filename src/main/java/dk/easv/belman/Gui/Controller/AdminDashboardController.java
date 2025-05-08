@@ -2,6 +2,7 @@ package dk.easv.belman.Gui.Controller;
 
 import dk.easv.belman.BE.User;
 import dk.easv.belman.Gui.Model.UserModel;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,7 +11,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.collections.transformation.SortedList;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -25,6 +29,10 @@ public class AdminDashboardController {
     @FXML private TableView<User> userTableView;
     @FXML private TableColumn<User, String> usernameColumn;
     @FXML private TableColumn<User, String> roleColumn;
+    @FXML private TextField searchField;
+    @FXML private AnchorPane qaTabContent;
+    @FXML private AnchorPane prodTabContent;
+
 
     @FXML private Label currentUserLabel;
     private User currentUser;
@@ -42,6 +50,60 @@ public class AdminDashboardController {
 
         usermodel.loadUsersFromDatabase();
         userTableView.setItems(usermodel.getUsers());
+
+        setupUserSearch();
+    }
+
+    private void loadTabContent() {
+        try {
+            FXMLLoader qaLoader = new FXMLLoader(getClass().getResource("/dk/easv/belman/QaDashboard.fxml"));
+            Parent qaRoot = qaLoader.load();
+            QaDashboardController qaController = qaLoader.getController();
+            qaController.setCurrentUser(currentUser);
+
+            BorderPane qaPane = (BorderPane) qaRoot;
+            Node qaCenter = qaPane.getCenter();
+            qaTabContent.getChildren().setAll(qaCenter);
+            AnchorPane.setTopAnchor(qaCenter, 0.0);
+            AnchorPane.setBottomAnchor(qaCenter, 0.0);
+            AnchorPane.setLeftAnchor(qaCenter, 0.0);
+            AnchorPane.setRightAnchor(qaCenter, 0.0);
+
+
+            FXMLLoader prodLoader = new FXMLLoader(getClass().getResource("/dk/easv/belman/WorkerDashboard.fxml"));
+            Parent prodRoot = prodLoader.load();
+            WorkerDashboardController prodController = prodLoader.getController();
+            prodController.setCurrentUser(currentUser);
+
+            BorderPane prodPane = (BorderPane) prodRoot;
+            Node prodCenter = prodPane.getCenter();
+            prodTabContent.getChildren().setAll(prodCenter);
+            AnchorPane.setTopAnchor(prodCenter, 0.0);
+            AnchorPane.setBottomAnchor(prodCenter, 0.0);
+            AnchorPane.setLeftAnchor(prodCenter, 0.0);
+            AnchorPane.setRightAnchor(prodCenter, 0.0);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setupUserSearch() {
+        FilteredList<User> filteredUsers = new FilteredList<>(usermodel.getUsers(), p -> true);
+
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredUsers.setPredicate(user -> {
+                if (newValue == null || newValue.isEmpty()) return true;
+                String lowerCaseFilter = newValue.toLowerCase();
+                return user.getUsername().toLowerCase().contains(lowerCaseFilter)
+                        || user.getRole().toLowerCase().contains(lowerCaseFilter);
+            });
+        });
+
+        SortedList<User> sortedUsers = new SortedList<>(filteredUsers);
+        sortedUsers.comparatorProperty().bind(userTableView.comparatorProperty());
+
+        userTableView.setItems(sortedUsers);
     }
 
 
@@ -130,5 +192,6 @@ public class AdminDashboardController {
     public void setCurrentUser(User user) {
         this.currentUser = user;
         currentUserLabel.setText("Logged in as: " + user.getUsername());
+        loadTabContent();
     }
 }

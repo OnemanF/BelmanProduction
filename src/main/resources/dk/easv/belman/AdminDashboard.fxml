@@ -16,7 +16,14 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane stylesheets="/dk/easv/belman/AdminDashboard.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dk.easv.belman.Gui.Controller.AdminDashboardController">
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.layout.AnchorPane?>
+<BorderPane stylesheets="/dk/easv/belman/AdminDashboard.css"
+            xmlns="http://javafx.com/javafx/23.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="dk.easv.belman.Gui.Controller.AdminDashboardController">
 
     <top>
         <ToolBar>
@@ -34,25 +41,44 @@
     </top>
 
     <center>
-        <VBox alignment="CENTER" maxWidth="712.0" prefHeight="626.0" prefWidth="712.0" spacing="20" BorderPane.alignment="CENTER">
+        <TabPane fx:id="adminTabPane" prefHeight="600" prefWidth="1000">
+            <tabs>
 
-            <Label fx:id="CreateNewUser" text="Create New User" />
-            <TextField fx:id="UsernameTxt" maxWidth="300" promptText="Username" />
-            <PasswordField fx:id="newPasswordField" maxWidth="300" promptText="Password" />
-            <ComboBox fx:id="roleComboBox" maxWidth="300" promptText="Select Role" />
-            <Button maxWidth="200" onAction="#handleAddUser" text="Add User" />
+                <Tab text="Admin Panel" closable="false">
+                    <ScrollPane fitToWidth="true" fitToHeight="true">
+                        <VBox alignment="CENTER" spacing="20" style="-fx-padding: 20;">
+                            <Label fx:id="CreateNewUser" text="Create New User" />
+                            <TextField fx:id="UsernameTxt" maxWidth="300" promptText="Username" />
+                            <PasswordField fx:id="newPasswordField" maxWidth="300" promptText="Password" />
+                            <ComboBox fx:id="roleComboBox" maxWidth="300" promptText="Select Role" />
+                            <Button maxWidth="200" onAction="#handleAddUser" text="Add User" />
 
-            <Separator maxWidth="500" />
+                            <Separator maxWidth="500" />
 
-            <Label fx:id="ExistingUsers" text="Existing Users" />
-            <TableView fx:id="userTableView" maxWidth="600" prefHeight="300">
-                <columns>
-                    <TableColumn fx:id="usernameColumn" prefWidth="300" text="Username" />
-                    <TableColumn fx:id="roleColumn" prefWidth="299.20001220703125" text="Role" />
-                </columns>
-            </TableView>
+                            <Label fx:id="ExistingUsers" text="Existing Users" />
+                            <TextField fx:id="searchField" maxWidth="300" promptText="Search users..." />
+                            <TableView fx:id="userTableView" maxWidth="600" prefHeight="300">
+                                <columns>
+                                    <TableColumn fx:id="usernameColumn" prefWidth="300" text="Username" />
+                                    <TableColumn fx:id="roleColumn" prefWidth="299.2" text="Role" />
+                                </columns>
+                            </TableView>
+                            <Button maxWidth="200" onAction="#handleDeleteUser" text="Delete Selected User" />
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
 
-            <Button maxWidth="200" onAction="#handleDeleteUser" text="Delete Selected User" />
-        </VBox>
+                <Tab text="QA Dashboard" closable="false">
+                    <AnchorPane fx:id="qaTabContent"/>
+                </Tab>
+
+                <Tab text="Production Dashboard" closable="false">
+                    <AnchorPane fx:id="prodTabContent"/>
+                </Tab>
+
+            </tabs>
+        </TabPane>
     </center>
+
 </BorderPane>
+

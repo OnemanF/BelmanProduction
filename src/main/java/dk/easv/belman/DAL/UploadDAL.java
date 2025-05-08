@@ -40,6 +40,31 @@ public class UploadDAL {
         return entries;
     }
 
+    public List<UploadEntry> getAllUploads() throws SQLException {
+        List<UploadEntry> uploads = new ArrayList<>();
+        String sql = "SELECT * FROM Uploads";
+
+        try (Connection conn = DBConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                UploadEntry entry = new UploadEntry(
+                        rs.getInt("id"),
+                        rs.getString("order_number"),
+                        rs.getString("image_path"),
+                        rs.getString("status"),
+                        rs.getString("uploaded_by"),
+                        rs.getString("upload_date"),
+                        rs.getString("approved_by"),
+                        rs.getString("approval_date")
+                );
+                uploads.add(entry);
+            }
+        }
+        return uploads;
+    }
+
     public void updateApprovalStatus(int uploadId, String status, String approvedBy) throws SQLException {
         String sql = """
         UPDATE Uploads

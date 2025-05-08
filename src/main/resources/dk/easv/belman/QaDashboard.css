@@ -15,3 +15,24 @@
     -fx-text-fill: white;
     -fx-font-weight: bold;
 }
+
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-padding: 6;
+}
+
+.icon-button:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.07);
+    -fx-border-color: rgba(0, 0, 0, 0.15);
+}
+
+.table-view .scroll-bar:horizontal {
+    -fx-pref-width: 0;
+    -fx-opacity: 0;
+    -fx-max-width: 0;
+    -fx-min-width: 0;
+    -fx-padding: 0;
+}
