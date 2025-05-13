@@ -15,6 +15,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.collections.transformation.SortedList;
 
@@ -96,7 +97,7 @@ public class AdminDashboardController {
             AnchorPane.setLeftAnchor(qaCenter, 0.0);
             AnchorPane.setRightAnchor(qaCenter, 0.0);
 
-
+            /*
             FXMLLoader prodLoader = new FXMLLoader(getClass().getResource("/dk/easv/belman/WorkerDashboard.fxml"));
             Parent prodRoot = prodLoader.load();
             WorkerDashboardController prodController = prodLoader.getController();
@@ -109,7 +110,7 @@ public class AdminDashboardController {
             AnchorPane.setBottomAnchor(prodCenter, 0.0);
             AnchorPane.setLeftAnchor(prodCenter, 0.0);
             AnchorPane.setRightAnchor(prodCenter, 0.0);
-
+             */
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -229,9 +230,14 @@ public class AdminDashboardController {
             return;
         }
 
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
                 "Are you sure you want to delete " + selectedUser.getUsername() + "?",
                 ButtonType.YES, ButtonType.NO);
+
+        confirm.initOwner(stage);
+        confirm.initModality(Modality.WINDOW_MODAL);
 
         Optional<ButtonType> result = confirm.showAndWait();
 

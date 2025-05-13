@@ -27,7 +27,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.collections.ObservableList;
-
+import javafx.stage.Window;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -241,9 +241,13 @@ public class QaDashboardController {
     }
 
     private void handleApprove(String orderNumber) {
+        if ("admin".equalsIgnoreCase(currentUser.getRole())) {
+            showAccessDenied("Admins are not allowed to approve QA orders.");
+            return;
+        }
+
         try {
             uploadModel.updateApprovalStatusByOrder(orderNumber, "approved", currentUser.getUsername());
-
             showAlert("Approved all Images for order: " + orderNumber);
 
             uploadModel.loadPendingUploads();
@@ -257,6 +261,10 @@ public class QaDashboardController {
     }
 
     private void handleReject(String orderNumber) {
+        if ("admin".equalsIgnoreCase(currentUser.getRole())) {
+            showAccessDenied("Admins are not allowed to reject QA orders.");
+            return;
+        }
         try {
             uploadModel.updateApprovalStatusByOrder(orderNumber, "rejected", currentUser.getUsername());
 
@@ -271,6 +279,26 @@ public class QaDashboardController {
             showAlert("Error rejecting uploads: " + e.getMessage());
         }
     }
+
+    private void showAccessDenied(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Access Denied");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        // Find a safe fallback window
+        Window owner = null;
+        try {
+            owner = pendingOrdersList.getScene().getWindow();
+        } catch (Exception ignored) {}
+
+        if (owner != null)
+            alert.initOwner(owner);
+
+        alert.initModality(Modality.WINDOW_MODAL);
+        alert.showAndWait();
+    }
+
 
     private void handleSendEmail(String orderNumber) {
         try {
@@ -313,4 +341,5 @@ public class QaDashboardController {
         alert.initModality(Modality.WINDOW_MODAL);
         alert.show();
     }
+
 }
