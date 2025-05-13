@@ -2,6 +2,7 @@ package dk.easv.belman.Gui.Model;
 
 import dk.easv.belman.BE.UploadEntry;
 import dk.easv.belman.BLL.UploadBLL;
+import dk.easv.belman.DAL.UploadDAL;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -16,8 +17,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-
-import java.io.File;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -29,8 +28,10 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class UploadModel {
+
+
     private static final UploadModel instance = new UploadModel();
-    private final UploadBLL uploadBLL = new UploadBLL();
+    UploadBLL uploadBLL = new UploadBLL(new UploadDAL());
 
     private final List<String> imagePaths = new ArrayList<>();
 
@@ -70,9 +71,18 @@ public class UploadModel {
     public ObservableList<UploadEntry> getAllUploads() {
         return allUploads;
     }
-    public void updateApprovalStatus(int uploadId, String status, String approvedBy) throws SQLException {
-        uploadBLL.setUploadDALStatus(uploadId, status, approvedBy);
+
+    public void updateApprovalStatusByOrder(String orderNumber, String status, String approvedBy) throws SQLException {
+        uploadBLL.setUploadStatusByOrder(orderNumber, status, approvedBy);
         loadPendingUploads();
+    }
+    public void loadAllOrderSummaries() {
+        try {
+            List<UploadEntry> list = uploadBLL.getAllOrderSummaries();
+            allUploads.setAll(list);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void addImagePath(String path){

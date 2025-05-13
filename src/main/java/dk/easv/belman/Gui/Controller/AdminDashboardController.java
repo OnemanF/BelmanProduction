@@ -1,6 +1,8 @@
 package dk.easv.belman.Gui.Controller;
 
+import dk.easv.belman.BE.UploadEntry;
 import dk.easv.belman.BE.User;
+import dk.easv.belman.Gui.Model.UploadModel;
 import dk.easv.belman.Gui.Model.UserModel;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -33,9 +35,20 @@ public class AdminDashboardController {
     @FXML private AnchorPane qaTabContent;
     @FXML private AnchorPane prodTabContent;
 
+    @FXML private TableView<UploadEntry> uploadTable;
+    @FXML private TableColumn<UploadEntry, String> orderNumberCol;
+    @FXML private TableColumn<UploadEntry, String> uploadedByCol;
+    @FXML private TableColumn<UploadEntry, String> uploadDateCol;
+    @FXML private TableColumn<UploadEntry, String> statusCol;
+    @FXML private TableColumn<UploadEntry, String> approvedByCol;
+    @FXML private TableColumn<UploadEntry, String> approvalDateCol;
+    @FXML private TextField uploadSearchField;
+
 
     @FXML private Label currentUserLabel;
     private User currentUser;
+
+    private final UploadModel uploadModel = UploadModel.getInstance();
 
     private final UserModel usermodel = UserModel.getInstance();
 
@@ -52,6 +65,20 @@ public class AdminDashboardController {
         userTableView.setItems(usermodel.getUsers());
 
         setupUserSearch();
+        loadUploadEntries();
+        setupUploadSearch();
+    }
+
+    private void loadUploadEntries() {
+        uploadModel.loadAllUploads();
+        uploadTable.setItems(uploadModel.getAllUploads());
+
+        orderNumberCol.setCellValueFactory(new PropertyValueFactory<>("orderNumber"));
+        uploadedByCol.setCellValueFactory(new PropertyValueFactory<>("uploadedBy"));
+        uploadDateCol.setCellValueFactory(new PropertyValueFactory<>("uploadDate"));
+        statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
+        approvedByCol.setCellValueFactory(new PropertyValueFactory<>("approvedBy"));
+        approvalDateCol.setCellValueFactory(new PropertyValueFactory<>("approvalDate"));
     }
 
     private void loadTabContent() {
@@ -104,6 +131,32 @@ public class AdminDashboardController {
         sortedUsers.comparatorProperty().bind(userTableView.comparatorProperty());
 
         userTableView.setItems(sortedUsers);
+    }
+
+    private void setupUploadSearch() {
+        FilteredList<UploadEntry> filteredUploads = new FilteredList<>(uploadModel.getAllUploads(), p -> true);
+
+        uploadSearchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            String lower = newVal.toLowerCase();
+
+            filteredUploads.setPredicate(entry -> {
+                if (newVal == null || newVal.isEmpty()) return true;
+
+                return safeContains(entry.getOrderNumber(), lower)
+                        || safeContains(entry.getUploadedBy(), lower)
+                        || safeContains(entry.getStatus(), lower)
+                        || safeContains(entry.getApprovedBy(), lower);
+            });
+        });
+
+        SortedList<UploadEntry> sorted = new SortedList<>(filteredUploads);
+        sorted.comparatorProperty().bind(uploadTable.comparatorProperty());
+
+        uploadTable.setItems(sorted);
+    }
+
+    private boolean safeContains(String source, String target) {
+        return source != null && source.toLowerCase().contains(target);
     }
 
 
@@ -161,7 +214,10 @@ public class AdminDashboardController {
     }
 
     private void showAlert(String msg) {
-        new Alert(Alert.AlertType.INFORMATION, msg).showAndWait();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setContentText(msg);
+        alert.initOwner(UsernameTxt.getScene().getWindow());
+        alert.show();
     }
 
     @FXML

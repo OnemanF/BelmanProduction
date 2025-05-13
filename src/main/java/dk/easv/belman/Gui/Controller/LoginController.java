@@ -1,14 +1,12 @@
 package dk.easv.belman.Gui.Controller;
 
 import dk.easv.belman.BE.User;
-import dk.easv.belman.BLL.UserBLL;
 import dk.easv.belman.Gui.Model.UserModel;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -20,8 +18,12 @@ public class LoginController {
     @FXML private TextField txtUsername;
     @FXML private PasswordField txtPassword;
 
-
     private final UserModel userModel = UserModel.getInstance();
+
+    @FXML
+    private void initialize() {
+        txtPassword.setOnAction(e -> handleLogin(new ActionEvent()));
+    }
 
     public void handleLogin(ActionEvent actionEvent) {
         String username = txtUsername.getText();
@@ -82,7 +84,8 @@ public class LoginController {
             stage.setFullScreenExitHint("");
             stage.show();
 
-            ((Stage) ((Node) event.getSource()).getScene().getWindow()).close();
+            Stage currentStage = (Stage) txtUsername.getScene().getWindow();
+            currentStage.close();
 
         } catch (IOException e) {
             e.printStackTrace();

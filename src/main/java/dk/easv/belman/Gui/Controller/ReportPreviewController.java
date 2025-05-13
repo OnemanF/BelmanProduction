@@ -1,9 +1,6 @@
 package dk.easv.belman.Gui.Controller;
 
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
@@ -21,15 +18,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-
-
 import javafx.stage.Window;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +101,7 @@ public class ReportPreviewController {
             stream.setFont(PDType1Font.HELVETICA_BOLD, 18);
             stream.setLeading(22f);
             stream.newLineAtOffset(MARGIN, yPosition);
-            stream.showText("QC Report");
+            stream.showText("Belman A/S Quality Control Report");
             stream.newLine();
 
             stream.setFont(PDType1Font.HELVETICA, 12);

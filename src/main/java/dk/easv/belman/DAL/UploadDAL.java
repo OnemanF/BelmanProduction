@@ -1,6 +1,7 @@
 package dk.easv.belman.DAL;
 
 import dk.easv.belman.BE.UploadEntry;
+import dk.easv.belman.Interface.Uploadi;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,7 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UploadDAL {
+public class UploadDAL implements Uploadi {
     public List<UploadEntry> getPendingUploads() throws SQLException {
         List<UploadEntry> entries = new ArrayList<>();
         String sql = """
@@ -65,18 +66,13 @@ public class UploadDAL {
         return uploads;
     }
 
-    public void updateApprovalStatus(int uploadId, String status, String approvedBy) throws SQLException {
-        String sql = """
-        UPDATE Uploads
-        SET status = ?, approved_by = ?, approval_date = GETDATE()
-        WHERE id = ?
-    """;
-
+    public void updateStatusByOrder(String orderNumber, String status, String approvedBy) throws SQLException {
+        String sql = "UPDATE Uploads SET status = ?, approved_by = ? WHERE order_number = ?";
         try (Connection conn = DBConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, status);
             stmt.setString(2, approvedBy);
-            stmt.setInt(3, uploadId);
+            stmt.setString(3, orderNumber);
             stmt.executeUpdate();
         }
     }
@@ -91,5 +87,42 @@ public class UploadDAL {
             ps.setString(4, entry.getUploadedBy());
             ps.executeUpdate();
         }
+    }
+
+    public List<UploadEntry> getAllOrderSummaries() throws SQLException {
+        List<UploadEntry> uploads = new ArrayList<>();
+        String sql = """
+        SELECT 
+            order_number,
+            MAX(upload_date) AS upload_date,
+            MAX(uploaded_by) AS uploaded_by,
+            MAX(status) AS status,
+            MAX(approved_by) AS approved_by,
+            MAX(approval_date) AS approval_date
+        FROM Uploads
+        WHERE status IN ('approved', 'rejected')
+        GROUP BY order_number
+        ORDER BY MAX(upload_date) DESC
+    """;
+
+        try (Connection conn = DBConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                uploads.add(new UploadEntry(
+                        0,
+                        rs.getString("order_number"),
+                        null,
+                        rs.getString("status"),
+                        rs.getString("uploaded_by"),
+                        rs.getString("upload_date"),
+                        rs.getString("approved_by"),
+                        rs.getString("approval_date")
+                ));
+            }
+        }
+
+        return uploads;
     }
 }

@@ -15,6 +15,10 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
@@ -24,8 +28,10 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.collections.ObservableList;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -236,18 +242,12 @@ public class QaDashboardController {
 
     private void handleApprove(String orderNumber) {
         try {
-            List<UploadEntry> entriesToApprove = uploadModel.getPendingUploads().stream()
-                    .filter(upload -> orderNumber.equals(upload.getOrderNumber()))
-                    .collect(Collectors.toList());
-
-            for (UploadEntry entry : entriesToApprove) {
-                uploadModel.updateApprovalStatus(entry.getId(), "approved", currentUser.getUsername());
-            }
+            uploadModel.updateApprovalStatusByOrder(orderNumber, "approved", currentUser.getUsername());
 
             showAlert("Approved all Images for order: " + orderNumber);
 
             uploadModel.loadPendingUploads();
-            uploadModel.loadAllUploads();
+            uploadModel.loadAllOrderSummaries();
             loadOrders();
             loadPendingOrderNumbers();
 
@@ -258,18 +258,12 @@ public class QaDashboardController {
 
     private void handleReject(String orderNumber) {
         try {
-            List<UploadEntry> entriesToReject = uploadModel.getPendingUploads().stream()
-                    .filter(upload -> orderNumber.equals(upload.getOrderNumber()))
-                    .collect(Collectors.toList());
-
-            for (UploadEntry entry : entriesToReject) {
-                uploadModel.updateApprovalStatus(entry.getId(), "rejected", currentUser.getUsername());
-            }
+            uploadModel.updateApprovalStatusByOrder(orderNumber, "rejected", currentUser.getUsername());
 
             showAlert("Rejected all Images for order: " + orderNumber);
 
             uploadModel.loadPendingUploads();
-            uploadModel.loadAllUploads();
+            uploadModel.loadAllOrderSummaries();
             loadOrders();
             loadPendingOrderNumbers();
 
@@ -279,8 +273,21 @@ public class QaDashboardController {
     }
 
     private void handleSendEmail(String orderNumber) {
-        // TODO: implement
-        showAlert("Sending email for order: " + orderNumber);
+        try {
+            String subject = "Order Review for: " + orderNumber;
+            String body = "The order " + orderNumber + " has been reviewed. Please check Belsign for details.";
+
+            String gmailUrl = String.format(
+                    "https://mail.google.com/mail/?view=cm&fs=1&to=support@belman.dk&su=%s&body=%s",
+                    java.net.URLEncoder.encode(subject, "UTF-8"),
+                    java.net.URLEncoder.encode(body, "UTF-8")
+            );
+
+            Desktop.getDesktop().browse(new URI(gmailUrl));
+
+        } catch (Exception e) {
+            showAlert("Failed to open Gmail: " + e.getMessage());
+        }
     }
 
     private void addZoomCapability(ImageView imageview) {

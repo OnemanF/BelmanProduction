@@ -1,19 +1,31 @@
 package dk.easv.belman.BLL;
 
+import dk.easv.belman.BE.PasswordHashing;
 import dk.easv.belman.BE.User;
 import dk.easv.belman.DAL.UserDal;
+import dk.easv.belman.Interface.Useri;
 
 import java.sql.SQLException;
 import java.util.List;
 
 public class UserBLL {
-    private final UserDal userDAL = new UserDal();
+    private final Useri userDAL;
+
+    public UserBLL() {
+        this.userDAL = new UserDal();
+    }
 
     public User getAuthenticatedUser(String username, String password) throws SQLException {
-        return userDAL.getAuthenticatedUser(username, password);
+        User found = userDAL.getByUsername(username);
+        if (found != null && PasswordHashing.verifyPassword(password, found.getPassword())) {
+            return found;
+        }
+        return null;
     }
 
     public User addUser(User user) throws SQLException {
+        String hashed = PasswordHashing.hashPassword(user.getPassword());
+        user.setPassword(hashed);
         return userDAL.addUser(user);
     }
 

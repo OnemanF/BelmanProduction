@@ -1,32 +1,13 @@
 package dk.easv.belman.DAL;
 
 import dk.easv.belman.BE.User;
+import dk.easv.belman.Interface.Useri;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserDal {
-    public User getAuthenticatedUser(String username, String password) throws SQLException {
-        String sql = "SELECT * FROM Users WHERE username = ? AND password = ?";
-        try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return new User(
-                        rs.getInt("id"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("role")
-                );
-            }
-        }
-        return null;
-    }
+public class UserDal implements Useri {
 
     public User addUser(User user) throws SQLException {
         String sql = "INSERT INTO Users (username, password, role) VALUES (?, ?, ?)";
@@ -91,6 +72,24 @@ public class UserDal {
         }
 
         return allUsers;
+    }
+
+    public User getByUsername(String username) throws SQLException {
+        String sql = "SELECT * FROM Users WHERE username = ?";
+        try (Connection conn = DBConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new User(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getString("password"), //hashing
+                        rs.getString("role")
+                );
+            }
+        }
+        return null;
     }
 
 }
