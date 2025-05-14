@@ -48,35 +48,40 @@ public class ReportPreviewController {
     }
 
     public void loadReportData(String orderNumber) {
-        List<UploadEntry> uploadsForOrder = uploadModel.getPendingUploads().stream()
-                .filter(upload -> orderNumber.equals(upload.getOrderNumber()))
-                .collect(Collectors.toList());
+        try {
+            List<UploadEntry> uploadsForOrder = uploadModel.getPendingUploads().stream()
+                    .filter(upload -> orderNumber.equals(upload.getOrderNumber()))
+                    .collect(Collectors.toList());
 
-        if (uploadsForOrder.isEmpty()) {
-            orderNumberLabel.setText("N/A");
-            return;
-        }
-
-        UploadEntry first = uploadsForOrder.get(0);
-
-        orderNumberLabel.setText(first.getOrderNumber());
-        submittedByLabel.setText(first.getUploadedBy());
-        submissionDateLabel.setText(first.getUploadDate());
-
-        List<ImageView> thumbnails = new ArrayList<>();
-        for (UploadEntry upload : uploadsForOrder) {
-            try {
-                Image img = new Image(new File(upload.getImagePath()).toURI().toString(), 200, 0, true, true);
-                ImageView imageView = new ImageView(img);
-                imageView.setPreserveRatio(true);
-                imageView.setFitWidth(200);
-                thumbnails.add(imageView);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (uploadsForOrder.isEmpty()) {
+                orderNumberLabel.setText("N/A");
+                return;
             }
-        }
 
-        reportImagesList.setItems(FXCollections.observableArrayList(thumbnails));
+            UploadEntry first = uploadsForOrder.get(0);
+
+            orderNumberLabel.setText(first.getOrderNumber());
+            submittedByLabel.setText(first.getUploadedBy());
+            submissionDateLabel.setText(first.getUploadDate());
+
+            List<ImageView> thumbnails = new ArrayList<>();
+            for (UploadEntry upload : uploadsForOrder) {
+                try {
+                    Image img = new Image(new File(upload.getImagePath()).toURI().toString(), 200, 0, true, true);
+                    ImageView imageView = new ImageView(img);
+                    imageView.setPreserveRatio(true);
+                    imageView.setFitWidth(200);
+                    thumbnails.add(imageView);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            reportImagesList.setItems(FXCollections.observableArrayList(thumbnails));
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Error loading report data: " + e.getMessage());
+        }
     }
 
     public void handlePdf(ActionEvent actionEvent) {
@@ -184,8 +189,10 @@ public class ReportPreviewController {
         alert.setHeaderText(null);
         alert.setContentText(message);
 
-        Stage stage = (Stage) orderNumberLabel.getScene().getWindow();
-        alert.initOwner(stage);
+        try {
+            Stage stage = (Stage) orderNumberLabel.getScene().getWindow();
+            alert.initOwner(stage);
+        } catch (Exception ignored) {}
 
         alert.show();
     }
@@ -195,13 +202,18 @@ public class ReportPreviewController {
     }
 
     public void handleBack(ActionEvent actionEvent) {
-        for (Window window : Window.getWindows()) {
-            if (window instanceof Stage stage && stage.isShowing() && stage != ((Node) actionEvent.getSource()).getScene().getWindow()) {
-                stage.setFullScreen(true);
-                stage.setFullScreenExitHint("");
-                break;
+        try {
+            for (Window window : Window.getWindows()) {
+                if (window instanceof Stage stage && stage.isShowing() && stage != ((Node) actionEvent.getSource()).getScene().getWindow()) {
+                    stage.setFullScreen(true);
+                    stage.setFullScreenExitHint("");
+                    break;
+                }
             }
+
+            ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
+        } catch (Exception e) {
+            showAlert("Failed to go back: " + e.getMessage());
         }
-        ((Stage) ((Node) actionEvent.getSource()).getScene().getWindow()).close();
     }
 }

@@ -30,10 +30,14 @@ public class WorkerDashboardController {
     private User currentUser;
 
     public void setCurrentUser(User user) {
-        this.currentUser = user;
-        currentUserLabel.setText("Logged in as: " + user.getUsername());
+        try {
+            if (user == null) throw new IllegalArgumentException("User cannot be null.");
+            this.currentUser = user;
+            currentUserLabel.setText("Logged in as: " + user.getUsername());
+        } catch (Exception e) {
+            showAlert("Failed to set current user: " + e.getMessage());
+        }
     }
-
 
     public void handleLogout(ActionEvent actionEvent) {
         LoadSceneLogin("LoginView.fxml", actionEvent);
@@ -57,6 +61,7 @@ public class WorkerDashboardController {
     }
 
     public void handleUploadImage(ActionEvent actionEvent) {
+        try {
         String selectedType = imageTypeComboBox.getValue();
         if (selectedType == null || selectedType.isBlank()) {
             showAlert("Please select an image type before uploading.");
@@ -80,9 +85,13 @@ public class WorkerDashboardController {
 
             uploadModel.addImagePath(selectedFile.getAbsolutePath());
         }
+        } catch (Exception e) {
+            showAlert("Failed to upload image: " + e.getMessage());
+        }
     }
 
     public void handleSubmitImages(ActionEvent actionEvent) {
+        try {
         String orderNumber = orderNumberField.getText();
         if (orderNumber == null || orderNumber.isBlank()) {
             showAlert("Please enter an order number.");
@@ -101,6 +110,9 @@ public class WorkerDashboardController {
         orderNumberField.clear();
         uploadModel.loadPendingUploads();
         showAlert("Images submitted successfully!");
+        } catch (Exception e) {
+            showAlert("Failed to submit images: " + e.getMessage());
+        }
     }
 
     private void showAlert(String msg) {
@@ -109,10 +121,11 @@ public class WorkerDashboardController {
         alert.setHeaderText(null);
         alert.setContentText(msg);
 
-        Stage stage = (Stage) orderNumberField.getScene().getWindow();
-        alert.initOwner(stage);
+        try {
+            Stage stage = (Stage) orderNumberField.getScene().getWindow();
+            alert.initOwner(stage);
+        } catch (Exception ignored) {}
 
         alert.show();
     }
-
 }

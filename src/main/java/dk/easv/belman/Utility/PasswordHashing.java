@@ -1,4 +1,4 @@
-package dk.easv.belman.BE;
+package dk.easv.belman.Utility;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 

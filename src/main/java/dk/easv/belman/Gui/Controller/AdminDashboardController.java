@@ -55,31 +55,42 @@ public class AdminDashboardController {
 
     @FXML
     private void initialize() {
-        roleComboBox.getItems().addAll("Admin", "Quality Assurance", "Production Worker");
-        UsernameTxt.setPromptText("Username");
-        newPasswordField.setPromptText("Password");
+        try {
+            roleComboBox.getItems().addAll("Admin", "Quality Assurance", "Production Worker");
+            UsernameTxt.setPromptText("Username");
+            newPasswordField.setPromptText("Password");
 
-        usernameColumn.setCellValueFactory(new PropertyValueFactory<>("username"));
-        roleColumn.setCellValueFactory(new PropertyValueFactory<>("role"));
+            usernameColumn.setCellValueFactory(new PropertyValueFactory<>("username"));
+            roleColumn.setCellValueFactory(new PropertyValueFactory<>("role"));
 
-        usermodel.loadUsersFromDatabase();
-        userTableView.setItems(usermodel.getUsers());
+            usermodel.loadUsersFromDatabase();
+            userTableView.setItems(usermodel.getUsers());
 
-        setupUserSearch();
-        loadUploadEntries();
-        setupUploadSearch();
+            setupUserSearch();
+            loadUploadEntries();
+            setupUploadSearch();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Initialization failed: " + e.getMessage());
+        }
     }
 
-    private void loadUploadEntries() {
-        uploadModel.loadAllUploads();
-        uploadTable.setItems(uploadModel.getAllUploads());
 
-        orderNumberCol.setCellValueFactory(new PropertyValueFactory<>("orderNumber"));
-        uploadedByCol.setCellValueFactory(new PropertyValueFactory<>("uploadedBy"));
-        uploadDateCol.setCellValueFactory(new PropertyValueFactory<>("uploadDate"));
-        statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
-        approvedByCol.setCellValueFactory(new PropertyValueFactory<>("approvedBy"));
-        approvalDateCol.setCellValueFactory(new PropertyValueFactory<>("approvalDate"));
+    private void loadUploadEntries() {
+        try {
+            uploadModel.loadAllUploads();
+            uploadTable.setItems(uploadModel.getAllUploads());
+
+            orderNumberCol.setCellValueFactory(new PropertyValueFactory<>("orderNumber"));
+            uploadedByCol.setCellValueFactory(new PropertyValueFactory<>("uploadedBy"));
+            uploadDateCol.setCellValueFactory(new PropertyValueFactory<>("uploadDate"));
+            statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
+            approvedByCol.setCellValueFactory(new PropertyValueFactory<>("approvedBy"));
+            approvalDateCol.setCellValueFactory(new PropertyValueFactory<>("approvalDate"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Failed to load uploads: " + e.getMessage());
+        }
     }
 
     private void loadTabContent() {
@@ -217,7 +228,9 @@ public class AdminDashboardController {
     private void showAlert(String msg) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setContentText(msg);
-        alert.initOwner(UsernameTxt.getScene().getWindow());
+        try {
+            alert.initOwner(UsernameTxt.getScene().getWindow());
+        } catch (Exception ignored) {}
         alert.show();
     }
 
@@ -252,8 +265,14 @@ public class AdminDashboardController {
     }
 
     public void setCurrentUser(User user) {
-        this.currentUser = user;
-        currentUserLabel.setText("Logged in as: " + user.getUsername());
-        loadTabContent();
+        try {
+            if (user == null) throw new IllegalArgumentException("User is null");
+            this.currentUser = user;
+            currentUserLabel.setText("Logged in as: " + user.getUsername());
+            loadTabContent();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Failed to set current user: " + e.getMessage());
+        }
     }
 }

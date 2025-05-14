@@ -3,6 +3,7 @@ package dk.easv.belman.Gui.Model;
 import dk.easv.belman.BE.UploadEntry;
 import dk.easv.belman.BLL.UploadBLL;
 import dk.easv.belman.DAL.UploadDAL;
+import dk.easv.belman.Utility.ModelException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -13,31 +14,24 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
+
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class UploadModel {
 
-
     private static final UploadModel instance = new UploadModel();
-    UploadBLL uploadBLL = new UploadBLL(new UploadDAL());
+    private final UploadBLL uploadBLL = new UploadBLL(new UploadDAL());
 
     private final List<String> imagePaths = new ArrayList<>();
-
-    private final ObservableList<UploadEntry> pendingUploads  = FXCollections.observableArrayList();
-
+    private final ObservableList<UploadEntry> pendingUploads = FXCollections.observableArrayList();
     private final ObservableList<UploadEntry> allUploads = FXCollections.observableArrayList();
+    private final Map<String, Image> iconCache = new HashMap<>();
 
     private UploadModel() {}
 
@@ -46,16 +40,15 @@ public class UploadModel {
     }
 
     public ObservableList<UploadEntry> getPendingUploads() {
-        return pendingUploads ;
+        return pendingUploads;
     }
-    private final Map<String, Image> iconCache = new HashMap<>();
 
     public void loadPendingUploads() {
         try {
             List<UploadEntry> list = uploadBLL.getPendingUploads();
             pendingUploads.setAll(list);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ModelException("Failed to load pending uploads", e);
         }
     }
 
@@ -64,7 +57,7 @@ public class UploadModel {
             List<UploadEntry> list = uploadBLL.getAllUploads();
             allUploads.setAll(list);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ModelException("Failed to load all uploads", e);
         }
     }
 
@@ -76,16 +69,17 @@ public class UploadModel {
         uploadBLL.setUploadStatusByOrder(orderNumber, status, approvedBy);
         loadPendingUploads();
     }
+
     public void loadAllOrderSummaries() {
         try {
             List<UploadEntry> list = uploadBLL.getAllOrderSummaries();
             allUploads.setAll(list);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ModelException("Failed to load order summaries", e);
         }
     }
 
-    public void addImagePath(String path){
+    public void addImagePath(String path) {
         imagePaths.add(path);
     }
 
@@ -108,7 +102,7 @@ public class UploadModel {
                 uploadBLL.saveUpload(entry);
                 entries.add(entry);
             } catch (SQLException e) {
-                e.printStackTrace();
+                throw new ModelException("Failed to save image for order " + orderNumber, e);
             }
         }
         clearImagePaths();
@@ -120,7 +114,7 @@ public class UploadModel {
             InputStream is = getClass().getResourceAsStream(p);
             if (is == null) {
                 System.err.println("Missing icon resource: " + p);
-                return new Image(getClass().getResourceAsStream("/dk/easv/belman/Icon/fallback.png")); // optional fallback
+                return new Image(getClass().getResourceAsStream("/dk/easv/belman/Icon/fallback.png"));
             }
             return new Image(is);
         });
@@ -140,7 +134,6 @@ public class UploadModel {
         Tooltip.install(wrapper, new Tooltip(tooltipText));
         return wrapper;
     }
-
 
     public ObservableList<HBox> getPendingOrderBoxes(
             Consumer<String> onView,

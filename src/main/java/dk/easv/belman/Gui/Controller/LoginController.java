@@ -45,29 +45,31 @@ public class LoginController {
             }
         });
 
-        loginTask.setOnFailed(event -> showError("Login error."));
+        loginTask.setOnFailed(event -> {
+            Throwable ex = loginTask.getException();
+            ex.printStackTrace();
+            showError("Login error: " + ex.getMessage());
+        });
 
         new Thread(loginTask).start();
     }
 
     private void switchToDashboard(User user, ActionEvent event) {
-        String fxmlFile = switch (user.getRole().toLowerCase()) {
-            case "admin" -> "AdminDashboard.fxml";
-            case "quality assurance" -> "QaDashboard.fxml";
-            case "production worker" -> "WorkerDashboard.fxml";
-            default -> null;
-        };
-
-        if (fxmlFile == null) {
-            showError("Unknown role: " + user.getRole());
-            return;
-        }
-
         try {
+            if (user == null || user.getRole() == null) {
+                throw new IllegalArgumentException("User or role is null");
+            }
+
+            String fxmlFile = switch (user.getRole().toLowerCase()) {
+                case "admin" -> "AdminDashboard.fxml";
+                case "quality assurance" -> "QaDashboard.fxml";
+                case "production worker" -> "WorkerDashboard.fxml";
+                default -> throw new IllegalArgumentException("Unknown role: " + user.getRole());
+            };
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/dk/easv/belman/" + fxmlFile));
             Parent root = loader.load();
 
-            //Pass user to the loaded controller
             Object controller = loader.getController();
             if (controller instanceof QaDashboardController qaCtrl) {
                 qaCtrl.setCurrentUser(user);
@@ -87,7 +89,7 @@ public class LoginController {
             Stage currentStage = (Stage) txtUsername.getScene().getWindow();
             currentStage.close();
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             showError("Could not load dashboard: " + e.getMessage());
         }

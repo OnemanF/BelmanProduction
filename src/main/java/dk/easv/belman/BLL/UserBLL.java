@@ -1,6 +1,6 @@
 package dk.easv.belman.BLL;
 
-import dk.easv.belman.BE.PasswordHashing;
+import dk.easv.belman.Utility.PasswordHashing;
 import dk.easv.belman.BE.User;
 import dk.easv.belman.DAL.UserDal;
 import dk.easv.belman.Interface.Useri;

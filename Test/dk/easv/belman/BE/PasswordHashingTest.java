@@ -1,5 +1,6 @@
 package dk.easv.belman.BE;
 
+import dk.easv.belman.Utility.PasswordHashing;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

@@ -2,6 +2,7 @@ package dk.easv.belman.Gui.Model;
 
 import dk.easv.belman.BE.User;
 import dk.easv.belman.BLL.UserBLL;
+import dk.easv.belman.Utility.ModelException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -13,8 +14,7 @@ public class UserModel {
     private final ObservableList<User> users = FXCollections.observableArrayList();
     private final UserBLL userBLL = new UserBLL();
 
-    private UserModel() {
-    }
+    private UserModel() {}
 
     public static UserModel getInstance() {
         return instance;
@@ -28,12 +28,11 @@ public class UserModel {
         try {
             return userBLL.getAuthenticatedUser(username, password);
         } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+            throw new ModelException("Failed to authenticate user", e);
         }
     }
-    
-    public void addUser (User user) throws SQLException {
+
+    public void addUser(User user) throws SQLException {
         User addedUser = userBLL.addUser(user);
         users.add(addedUser);
     }
@@ -47,13 +46,12 @@ public class UserModel {
         users.remove(user);
     }
 
-    //updates the UI
     public void loadUsersFromDatabase() {
         try {
             List<User> allUsers = userBLL.getAllUsers();
             users.setAll(allUsers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ModelException("Failed to load users from database", e);
         }
     }
 }

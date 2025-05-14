@@ -55,15 +55,20 @@ public class QaDashboardController {
 
     @FXML
     private void initialize() {
+        try {
         uploadModel.loadPendingUploads();
         uploadModel.loadAllUploads();
 
         setupUploadTable();
         loadPendingOrderNumbers();
         loadOrders();
+        } catch (Exception e) {
+            showAlert("Initialization failed: " + e.getMessage());
+        }
     }
 
     private void loadPendingOrderNumbers() {
+        try {
         List<String> allOrders = uploadModel.getPendingUploads().stream()
                 .map(UploadEntry::getOrderNumber)
                 .distinct()
@@ -76,11 +81,15 @@ public class QaDashboardController {
 
             updatePendingOrderList(filtered);
         });
-
         updatePendingOrderList(allOrders);
+        } catch (Exception e) {
+            showAlert("Failed to load pending orders: " + e.getMessage());
+        }
     }
 
+
     private void updatePendingOrderList(List<String> orderNumbers) {
+        try {
         ObservableList<HBox> boxes = uploadModel.getPendingOrderBoxes(
                 this::handleViewImages,
                 this::handlePreviewReport,
@@ -93,15 +102,23 @@ public class QaDashboardController {
         });
 
         pendingOrdersList.setItems(boxes);
+        } catch (Exception e) {
+            showAlert("Failed to update pending orders: " + e.getMessage());
+        }
     }
 
     private void setupUploadTable() {
+        try {
         orderNumberCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("orderNumber"));
         uploadedByCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("uploadedBy"));
         statusCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("status"));
+        } catch (Exception e) {
+            showAlert("Failed to setup upload table: " + e.getMessage());
+        }
     }
 
     private void loadOrders() {
+        try {
         filteredReviewedUploads = new FilteredList<>(
                 uploadModel.getAllUploads(),
                 upload -> "approved".equalsIgnoreCase(upload.getStatus()) || "rejected".equalsIgnoreCase(upload.getStatus())
@@ -120,6 +137,9 @@ public class QaDashboardController {
         SortedList<UploadEntry> sorted = new SortedList<>(filteredReviewedUploads);
         sorted.comparatorProperty().bind(uploadTable.comparatorProperty());
         uploadTable.setItems(sorted);
+        } catch (Exception e) {
+            showAlert("Failed to load orders: " + e.getMessage());
+        }
     }
 
     public void handleLogout(ActionEvent actionEvent) {
@@ -142,6 +162,7 @@ public class QaDashboardController {
     }
 
     private void handleViewImages(String orderNumber) {
+        try {
         List<UploadEntry> imagesForOrder = uploadModel.getPendingUploads().stream()
                 .filter(upload -> orderNumber.equals(upload.getOrderNumber()))
                 .collect(Collectors.toList());
@@ -189,6 +210,9 @@ public class QaDashboardController {
             Stage mainStage = (Stage) pendingOrdersList.getScene().getWindow();
             mainStage.setFullScreen(true);
         });
+        } catch (Exception e) {
+            showAlert("Failed to load images: " + e.getMessage());
+        }
     }
 
     private void handlePreviewReport(String orderNumber) {
@@ -208,12 +232,16 @@ public class QaDashboardController {
             private ReportPreviewController controller;
 
             @Override
-            protected Void call() throws Exception {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/dk/easv/belman/ReportPreview.fxml"));
-                root = loader.load();
-                controller = loader.getController();
-                controller.setOrderNumber(orderNumber);
-                controller.loadReportData(orderNumber);
+            protected Void call() {
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/dk/easv/belman/ReportPreview.fxml"));
+                    root = loader.load();
+                    controller = loader.getController();
+                    controller.setOrderNumber(orderNumber);
+                    controller.loadReportData(orderNumber);
+                } catch (IOException | NullPointerException e) {
+                    throw new RuntimeException("Error loading report preview", e);
+                }
                 return null;
             }
 
@@ -328,8 +356,13 @@ public class QaDashboardController {
     }
 
     public void setCurrentUser(User user) {
-        this.currentUser = user;
-        currentUserLabel.setText("Logged in as: " + user.getUsername());
+        try {
+            if (user == null) throw new IllegalArgumentException("User cannot be null.");
+            this.currentUser = user;
+            currentUserLabel.setText("Logged in as: " + user.getUsername());
+        } catch (Exception e) {
+            showAlert("Failed to set current user: " + e.getMessage());
+        }
     }
 
     private void showAlert(String message) {
