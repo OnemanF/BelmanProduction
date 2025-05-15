@@ -19,6 +19,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
@@ -44,6 +45,7 @@ public class QaDashboardController {
     @FXML private TableColumn<UploadEntry, String> orderNumberCol;
     @FXML private TableColumn<UploadEntry, String> uploadedByCol;
     @FXML private TableColumn<UploadEntry, String> statusCol;
+    @FXML private TableColumn<UploadEntry, String> uploadDateCol;
     @FXML private TextField pendingSearchField;
     @FXML private TextField allOrdersSearchField;
 
@@ -112,6 +114,7 @@ public class QaDashboardController {
         orderNumberCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("orderNumber"));
         uploadedByCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("uploadedBy"));
         statusCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("status"));
+        uploadDateCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("uploadDate"));
         } catch (Exception e) {
             showAlert("Failed to setup upload table: " + e.getMessage());
         }

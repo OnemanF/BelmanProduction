@@ -28,7 +28,7 @@ IntelliJ vil automatisk importere pom.xml
 
 📊 Databaseopsætning
 
-Databasen hedder BelmanSystems
+Databasen hedder BelmanSystems (datagrip anbefales)
 
 Opret en mappe med filnavnet Config.Settings
 

@@ -4,8 +4,10 @@ import dk.easv.belman.BE.UploadEntry;
 import dk.easv.belman.BLL.UploadBLL;
 import dk.easv.belman.DAL.UploadDAL;
 import dk.easv.belman.Utility.ModelException;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -20,6 +22,8 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -32,6 +36,7 @@ public class UploadModel {
     private final ObservableList<UploadEntry> pendingUploads = FXCollections.observableArrayList();
     private final ObservableList<UploadEntry> allUploads = FXCollections.observableArrayList();
     private final Map<String, Image> iconCache = new HashMap<>();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private UploadModel() {}
 
@@ -52,13 +57,26 @@ public class UploadModel {
         }
     }
 
+    //Test Multi-threading, updates observationlist on the JavaFX UI thread, keeping UI safe
     public void loadAllUploads() {
-        try {
-            List<UploadEntry> list = uploadBLL.getAllUploads();
-            allUploads.setAll(list);
-        } catch (SQLException e) {
-            throw new ModelException("Failed to load all uploads", e);
-        }
+        Task<List<UploadEntry>> task = new Task<>() {
+            @Override
+            protected List<UploadEntry> call() throws Exception {
+                return uploadBLL.getAllUploads();
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+            List<UploadEntry> result = task.getValue();
+            Platform.runLater(() -> allUploads.setAll(result));
+        });
+
+        task.setOnFailed(event -> {
+            Throwable ex = task.getException();
+            ex.printStackTrace();
+        });
+
+        executor.submit(task);
     }
 
     public ObservableList<UploadEntry> getAllUploads() {
