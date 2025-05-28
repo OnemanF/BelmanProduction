@@ -31,6 +31,6 @@ class PasswordHashingTest {
         boolean isVerified = PasswordHashing.verifyPassword("WrongPassword", hash);
 
         // Assert
-        assertTrue(isVerified);
+        assertFalse(isVerified);
     }
 }

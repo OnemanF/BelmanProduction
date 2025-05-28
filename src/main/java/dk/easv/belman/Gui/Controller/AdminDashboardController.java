@@ -4,6 +4,7 @@ import dk.easv.belman.BE.UploadEntry;
 import dk.easv.belman.BE.User;
 import dk.easv.belman.Gui.Model.UploadModel;
 import dk.easv.belman.Gui.Model.UserModel;
+import dk.easv.belman.Utility.ModelException;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -44,13 +45,10 @@ public class AdminDashboardController {
     @FXML private TableColumn<UploadEntry, String> approvedByCol;
     @FXML private TableColumn<UploadEntry, String> approvalDateCol;
     @FXML private TextField uploadSearchField;
-
-
     @FXML private Label currentUserLabel;
+
     private User currentUser;
-
     private final UploadModel uploadModel = UploadModel.getInstance();
-
     private final UserModel usermodel = UserModel.getInstance();
 
     @FXML
@@ -69,12 +67,10 @@ public class AdminDashboardController {
             setupUserSearch();
             loadUploadEntries();
             setupUploadSearch();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (ModelException e) {
             showAlert("Initialization failed: " + e.getMessage());
         }
     }
-
 
     private void loadUploadEntries() {
         try {
@@ -87,8 +83,7 @@ public class AdminDashboardController {
             statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
             approvedByCol.setCellValueFactory(new PropertyValueFactory<>("approvedBy"));
             approvalDateCol.setCellValueFactory(new PropertyValueFactory<>("approvalDate"));
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (ModelException e) {
             showAlert("Failed to load uploads: " + e.getMessage());
         }
     }
@@ -123,7 +118,7 @@ public class AdminDashboardController {
             AnchorPane.setRightAnchor(prodCenter, 0.0);
              */
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ModelException("Failed to load tab content", e);
         }
     }
 
@@ -171,7 +166,6 @@ public class AdminDashboardController {
         return source != null && source.toLowerCase().contains(target);
     }
 
-
     public void handleLogout(ActionEvent actionEvent) {
         loadScene("LoginView.fxml", actionEvent);
     }
@@ -189,7 +183,7 @@ public class AdminDashboardController {
             stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ModelException("Failed to load scene: " + fxmlFile, e);
         }
     }
 
@@ -218,9 +212,7 @@ public class AdminDashboardController {
             newPasswordField.clear();
             roleComboBox.getSelectionModel();
 
-
         } catch (SQLException e) {
-            e.printStackTrace();
             showAlert("Error: " + e.getMessage());
         }
     }
@@ -258,7 +250,6 @@ public class AdminDashboardController {
             try {
                 usermodel.deleteUser(selectedUser);
             } catch (SQLException e) {
-                e.printStackTrace();
                 showAlert("Failed to delete user: " + e.getMessage());
             }
         }
@@ -271,7 +262,6 @@ public class AdminDashboardController {
             currentUserLabel.setText("Logged in as: " + user.getUsername());
             loadTabContent();
         } catch (Exception e) {
-            e.printStackTrace();
             showAlert("Failed to set current user: " + e.getMessage());
         }
     }

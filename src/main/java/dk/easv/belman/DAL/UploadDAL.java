@@ -32,12 +32,12 @@ public class UploadDAL implements Uploadi {
                         rs.getString("uploaded_by"),
                         rs.getString("upload_date"),
                         rs.getString("approved_by"),
-                        rs.getString("approval_date")
+                        rs.getString("approval_date"),
+                        rs.getString("image_type")
                 );
                 entries.add(entry);
             }
         }
-
         return entries;
     }
 
@@ -58,7 +58,8 @@ public class UploadDAL implements Uploadi {
                         rs.getString("uploaded_by"),
                         rs.getString("upload_date"),
                         rs.getString("approved_by"),
-                        rs.getString("approval_date")
+                        rs.getString("approval_date"),
+                        rs.getString("image_type")
                 );
                 uploads.add(entry);
             }
@@ -78,13 +79,14 @@ public class UploadDAL implements Uploadi {
     }
 
     public void insertUpload(UploadEntry entry) throws SQLException {
-        String sql = "INSERT INTO Uploads (order_number, image_path, status, uploaded_by, upload_date) VALUES (?, ?, ?, ?, GETDATE())";
+        String sql = "INSERT INTO Uploads (order_number, image_path, status, uploaded_by, upload_date, image_type) VALUES (?, ?, ?, ?, GETDATE(), ?)";
         try (Connection conn = DBConnector.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, entry.getOrderNumber());
             ps.setString(2, entry.getImagePath());
             ps.setString(3, entry.getStatus());
             ps.setString(4, entry.getUploadedBy());
+            ps.setString(5, entry.getImageType());
             ps.executeUpdate();
         }
     }
@@ -113,16 +115,16 @@ public class UploadDAL implements Uploadi {
                 uploads.add(new UploadEntry(
                         0,
                         rs.getString("order_number"),
-                        null,
+                        null, // image_path
                         rs.getString("status"),
                         rs.getString("uploaded_by"),
                         rs.getString("upload_date"),
                         rs.getString("approved_by"),
-                        rs.getString("approval_date")
+                        rs.getString("approval_date"),
+                        null // image_type er ikke med i select
                 ));
             }
         }
-
         return uploads;
     }
 }

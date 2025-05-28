@@ -1,5 +1,6 @@
 package dk.easv.belman.Gui.Model;
 
+import dk.easv.belman.BE.ImageUploadWrapper;
 import dk.easv.belman.BE.UploadEntry;
 import dk.easv.belman.BLL.UploadBLL;
 import dk.easv.belman.DAL.UploadDAL;
@@ -17,7 +18,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -32,11 +32,11 @@ public class UploadModel {
     private static final UploadModel instance = new UploadModel();
     private final UploadBLL uploadBLL = new UploadBLL(new UploadDAL());
 
-    private final List<String> imagePaths = new ArrayList<>();
     private final ObservableList<UploadEntry> pendingUploads = FXCollections.observableArrayList();
     private final ObservableList<UploadEntry> allUploads = FXCollections.observableArrayList();
     private final Map<String, Image> iconCache = new HashMap<>();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final List<ImageUploadWrapper> imageUploadWrappers = new ArrayList<>();
 
     private UploadModel() {}
 
@@ -73,10 +73,13 @@ public class UploadModel {
 
         task.setOnFailed(event -> {
             Throwable ex = task.getException();
-            ex.printStackTrace();
+            throw new ModelException("Failed to load all uploads", ex);
         });
-
+        try{
         executor.submit(task);
+        } catch (Exception e) {
+            throw new ModelException("Failed to submit task for loading uploads", e);
+        }
     }
 
     public ObservableList<UploadEntry> getAllUploads() {
@@ -84,8 +87,12 @@ public class UploadModel {
     }
 
     public void updateApprovalStatusByOrder(String orderNumber, String status, String approvedBy) throws SQLException {
-        uploadBLL.setUploadStatusByOrder(orderNumber, status, approvedBy);
-        loadPendingUploads();
+        try {
+            uploadBLL.setUploadStatusByOrder(orderNumber, status, approvedBy);
+            loadPendingUploads();
+        } catch (SQLException e) {
+            throw new ModelException("Failed to update approval status for order: " + orderNumber, e);
+        }
     }
 
     public void loadAllOrderSummaries() {
@@ -97,33 +104,32 @@ public class UploadModel {
         }
     }
 
-    public void addImagePath(String path) {
-        imagePaths.add(path);
+    public void addImageWrapper(ImageUploadWrapper wrapper) {
+        imageUploadWrappers.add(wrapper);
     }
 
-    public List<String> getImagePaths() {
-        return new ArrayList<>(imagePaths);
-    }
-
-    public void clearImagePaths() {
-        imagePaths.clear();
+    public void clearUploads() {
+        imageUploadWrappers.clear();
     }
 
     public List<UploadEntry> submitImages(String orderNumber, String uploadedBy) {
         List<UploadEntry> entries = new ArrayList<>();
-        for (String path : imagePaths) {
+        for (ImageUploadWrapper wrapper : imageUploadWrappers) {
             UploadEntry entry = new UploadEntry(
-                    0, orderNumber, path, "pending", uploadedBy,
-                    LocalDate.now().toString(), null, null
+                    0, orderNumber,
+                    wrapper.getImageFile().getAbsolutePath(),
+                    "pending", uploadedBy,
+                    LocalDate.now().toString(), null, null,
+                    wrapper.getAngle()
             );
             try {
                 uploadBLL.saveUpload(entry);
                 entries.add(entry);
             } catch (SQLException e) {
-                throw new ModelException("Failed to save image for order " + orderNumber, e);
+                throw new ModelException("Failed to save image: " + wrapper.getImageFile().getName(), e);
             }
         }
-        clearImagePaths();
+        clearUploads();
         return entries;
     }
 
@@ -160,35 +166,45 @@ public class UploadModel {
             Consumer<String> onReject,
             Consumer<String> onEmail
     ) {
-        ObservableList<HBox> boxes = FXCollections.observableArrayList();
+        try {
+            ObservableList<HBox> boxes = FXCollections.observableArrayList();
 
-        List<String> orderNumbers = pendingUploads.stream()
-                .map(UploadEntry::getOrderNumber)
-                .distinct()
-                .collect(Collectors.toList());
+            List<String> orderNumbers = pendingUploads.stream()
+                    .map(UploadEntry::getOrderNumber)
+                    .distinct()
+                    .collect(Collectors.toList());
 
-        for (String orderNumber : orderNumbers) {
-            Label orderLabel = new Label(orderNumber);
-            orderLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            for (String orderNumber : orderNumbers) {
+                Label orderLabel = new Label(orderNumber);
+                orderLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
-            HBox iconBox = new HBox(16,
-                    createIcon("/dk/easv/belman/Icon/ImageIcon.png", () -> onView.accept(orderNumber), "View Images"),
-                    createIcon("/dk/easv/belman/Icon/MagGlass2.png", () -> onPreview.accept(orderNumber), "Preview Report"),
-                    createIcon("/dk/easv/belman/Icon/greenCheckMark.png", () -> onApprove.accept(orderNumber), "Approve"),
-                    createIcon("/dk/easv/belman/Icon/RedCrossMark.png", () -> onReject.accept(orderNumber), "Reject"),
-                    createIcon("/dk/easv/belman/Icon/sendEmail2.png", () -> onEmail.accept(orderNumber), "Send Email")
-            );
+                HBox iconBox = new HBox(16,
+                        createIcon("/dk/easv/belman/Icon/ImageIcon.png", () -> onView.accept(orderNumber), "View Images"),
+                        createIcon("/dk/easv/belman/Icon/MagGlass2.png", () -> onPreview.accept(orderNumber), "Preview Report"),
+                        createIcon("/dk/easv/belman/Icon/greenCheckMark.png", () -> onApprove.accept(orderNumber), "Approve"),
+                        createIcon("/dk/easv/belman/Icon/RedCrossMark.png", () -> onReject.accept(orderNumber), "Reject"),
+                        createIcon("/dk/easv/belman/Icon/sendEmail2.png", () -> onEmail.accept(orderNumber), "Send Email")
+                );
 
-            iconBox.setAlignment(Pos.CENTER_RIGHT);
+                iconBox.setAlignment(Pos.CENTER_RIGHT);
 
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
 
-            HBox row = new HBox(10, orderLabel, spacer, iconBox);
-            row.setAlignment(Pos.CENTER_LEFT);
-            boxes.add(row);
+                HBox row = new HBox(10, orderLabel, spacer, iconBox);
+                row.setAlignment(Pos.CENTER_LEFT);
+                boxes.add(row);
+            }
+
+            return boxes;
+        } catch (Exception e) {
+            throw new ModelException("Failed to load pending orders", e);
         }
+    }
 
-        return boxes;
+    public List<UploadEntry> getUploadsByOrderNumber(String orderNumber) {
+        return pendingUploads.stream()
+                .filter(u -> u.getOrderNumber().equalsIgnoreCase(orderNumber))
+                .collect(Collectors.toList());
     }
 }

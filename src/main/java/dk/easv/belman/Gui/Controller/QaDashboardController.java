@@ -3,6 +3,7 @@ package dk.easv.belman.Gui.Controller;
 import dk.easv.belman.BE.UploadEntry;
 import dk.easv.belman.BE.User;
 import dk.easv.belman.Gui.Model.UploadModel;
+import dk.easv.belman.Utility.ModelException;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.concurrent.Task;
@@ -19,7 +20,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
@@ -64,7 +64,7 @@ public class QaDashboardController {
         setupUploadTable();
         loadPendingOrderNumbers();
         loadOrders();
-        } catch (Exception e) {
+        } catch (ModelException e) {
             showAlert("Initialization failed: " + e.getMessage());
         }
     }
@@ -84,11 +84,10 @@ public class QaDashboardController {
             updatePendingOrderList(filtered);
         });
         updatePendingOrderList(allOrders);
-        } catch (Exception e) {
+        } catch (ModelException e) {
             showAlert("Failed to load pending orders: " + e.getMessage());
         }
     }
-
 
     private void updatePendingOrderList(List<String> orderNumbers) {
         try {
@@ -104,7 +103,7 @@ public class QaDashboardController {
         });
 
         pendingOrdersList.setItems(boxes);
-        } catch (Exception e) {
+        } catch (ModelException e) {
             showAlert("Failed to update pending orders: " + e.getMessage());
         }
     }
@@ -115,7 +114,7 @@ public class QaDashboardController {
         uploadedByCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("uploadedBy"));
         statusCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("status"));
         uploadDateCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("uploadDate"));
-        } catch (Exception e) {
+        } catch (ModelException e) {
             showAlert("Failed to setup upload table: " + e.getMessage());
         }
     }
@@ -140,7 +139,7 @@ public class QaDashboardController {
         SortedList<UploadEntry> sorted = new SortedList<>(filteredReviewedUploads);
         sorted.comparatorProperty().bind(uploadTable.comparatorProperty());
         uploadTable.setItems(sorted);
-        } catch (Exception e) {
+        } catch (ModelException e) {
             showAlert("Failed to load orders: " + e.getMessage());
         }
     }
@@ -160,7 +159,7 @@ public class QaDashboardController {
             stage.setMaximized(true);
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ModelException("Failed to load scene: " + fxmlFile, e);
         }
     }
 
@@ -179,17 +178,23 @@ public class QaDashboardController {
         imagesBox.setAlignment(Pos.CENTER);
         imagesBox.setPadding(new Insets(20));
 
-        for (UploadEntry upload : imagesForOrder) {
-            try {
-                ImageView imageView = new ImageView(new Image(new File(upload.getImagePath()).toURI().toString()));
-                imageView.setPreserveRatio(true);
-                imageView.setFitWidth(600);
-                addZoomCapability(imageView);
-                imagesBox.getChildren().add(imageView);
-            } catch (Exception e) {
-                e.printStackTrace();
+            for (UploadEntry upload : imagesForOrder) {
+                try {
+                    Label typeLabel = new Label("Angle: " + upload.getImageType());
+                    typeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+                    ImageView imageView = new ImageView(new Image(new File(upload.getImagePath()).toURI().toString()));
+                    imageView.setPreserveRatio(true);
+                    imageView.setFitWidth(600);
+                    addZoomCapability(imageView);
+
+                    VBox imageBox = new VBox(10, typeLabel, imageView);
+                    imageBox.setAlignment(Pos.CENTER);
+                    imagesBox.getChildren().add(imageBox);
+                } catch (Exception e) {
+                    throw new ModelException("Failed to load image for upload: " + upload.getImagePath(), e);
+                }
             }
-        }
 
         Button closeButton = new Button("Close");
         closeButton.setOnAction(e -> ((Stage) closeButton.getScene().getWindow()).close());
@@ -213,7 +218,7 @@ public class QaDashboardController {
             Stage mainStage = (Stage) pendingOrdersList.getScene().getWindow();
             mainStage.setFullScreen(true);
         });
-        } catch (Exception e) {
+        } catch (ModelException e) {
             showAlert("Failed to load images: " + e.getMessage());
         }
     }
@@ -240,10 +245,9 @@ public class QaDashboardController {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/dk/easv/belman/ReportPreview.fxml"));
                     root = loader.load();
                     controller = loader.getController();
-                    controller.setOrderNumber(orderNumber);
                     controller.loadReportData(orderNumber);
                 } catch (IOException | NullPointerException e) {
-                    throw new RuntimeException("Error loading report preview", e);
+                    throw new ModelException("Error loading report preview", e);
                 }
                 return null;
             }
@@ -317,7 +321,6 @@ public class QaDashboardController {
         alert.setHeaderText(null);
         alert.setContentText(message);
 
-        // Find a safe fallback window
         Window owner = null;
         try {
             owner = pendingOrdersList.getScene().getWindow();
@@ -329,7 +332,6 @@ public class QaDashboardController {
         alert.initModality(Modality.WINDOW_MODAL);
         alert.showAndWait();
     }
-
 
     private void handleSendEmail(String orderNumber) {
         try {
@@ -363,7 +365,7 @@ public class QaDashboardController {
             if (user == null) throw new IllegalArgumentException("User cannot be null.");
             this.currentUser = user;
             currentUserLabel.setText("Logged in as: " + user.getUsername());
-        } catch (Exception e) {
+        } catch (ModelException e) {
             showAlert("Failed to set current user: " + e.getMessage());
         }
     }
@@ -373,9 +375,10 @@ public class QaDashboardController {
         alert.setTitle("Information");
         alert.setHeaderText(null);
         alert.setContentText(message);
-        alert.initOwner(currentUserLabel.getScene().getWindow());
+        try {
+            alert.initOwner(currentUserLabel.getScene().getWindow());
+        } catch (Exception ignored) {}
         alert.initModality(Modality.WINDOW_MODAL);
         alert.show();
     }
-
 }

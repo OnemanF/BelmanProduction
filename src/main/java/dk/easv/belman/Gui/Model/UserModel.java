@@ -33,17 +33,29 @@ public class UserModel {
     }
 
     public void addUser(User user) throws SQLException {
-        User addedUser = userBLL.addUser(user);
-        users.add(addedUser);
+        try {
+            User addedUser = userBLL.addUser(user);
+            users.add(addedUser);
+        } catch (SQLException e) {
+            throw new ModelException("Failed to add user", e);
+        }
     }
 
     public boolean userExists(String username) throws SQLException {
-        return userBLL.userExists(username);
+        try {
+            return userBLL.userExists(username);
+        } catch (SQLException e) {
+            throw new ModelException("Failed to check if user exists", e);
+        }
     }
 
     public void deleteUser(User user) throws SQLException {
-        userBLL.deleteUser(user);
-        users.remove(user);
+        try {
+            userBLL.deleteUser(user);
+            users.remove(user);
+        } catch (SQLException e) {
+            throw new ModelException("Failed to delete user", e);
+        }
     }
 
     public void loadUsersFromDatabase() {

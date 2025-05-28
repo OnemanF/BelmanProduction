@@ -9,8 +9,9 @@ public class UploadEntry {
     private String uploadDate;
     private String approvedBy;
     private String approvalDate;
+    private String imageType;
 
-    public UploadEntry(int id, String orderNumber, String imagePath, String status, String uploadedBy, String uploadDate, String approvedBy, String approvalDate) {
+    public UploadEntry(int id, String orderNumber, String imagePath, String status, String uploadedBy, String uploadDate, String approvedBy, String approvalDate, String imageType) {
         this.id = id;
         this.orderNumber = orderNumber;
         this.imagePath = imagePath;
@@ -19,6 +20,7 @@ public class UploadEntry {
         this.uploadDate = uploadDate;
         this.approvedBy = approvedBy;
         this.approvalDate = approvalDate;
+        this.imageType = imageType;
     }
 
     public int getId() { return id; }
@@ -31,6 +33,8 @@ public class UploadEntry {
     public void setApprovedBy(String approvedBy) {this.approvedBy = approvedBy;}
     public String getApprovalDate() {return approvalDate;}
     public void setApprovalDate(String approvalDate) {this.approvalDate = approvalDate;}
+    public String getImageType() {return imageType;}
+    public void setImageType(String imageType) {this.imageType = imageType;}
 
     public void setId(int id) { this.id = id; }
     public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
